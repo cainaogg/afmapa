@@ -311,7 +311,9 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   <div class="toast" id="toast"></div>
 </div>
 
-<script src="data.js"></script>
+<!-- ?v=N: sem isso o navegador serve o data.js velho do cache e os lugares voltam pro lugar errado.
+     BUMPAR ESSE NUMERO SEMPRE QUE MEXER NO data.js. -->
+<script src="data.js?v=3"></script>
 <script>
 (function(){
   "use strict";
