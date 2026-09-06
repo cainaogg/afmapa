@@ -141,12 +141,6 @@ svg#map.modo-esquematico .esquematico{display:inline;}
 .config-row b{display:block;font-weight:600;}
 .config-row em{display:block;font-style:normal;color:var(--ink-soft);font-size:11.5px;margin-top:2px;}
 
-/* legenda */
-.legend-list{padding:10px 12px 12px;display:flex;flex-direction:column;gap:9px;overflow:auto;}
-.legend-list .row{display:flex;align-items:flex-start;gap:9px;font-size:12px;}
-.swatch{width:13px;height:13px;border-radius:3px;flex:none;margin-top:2px;}
-.legend-list .txt{color:var(--ink-soft);line-height:1.4;}
-.legend-list .txt b{color:var(--ink);}
 
 /* zoom controls */
 .fab-col{right:12px;bottom:14px;display:flex;flex-direction:column;align-items:center;gap:10px;}
@@ -159,8 +153,6 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   .fab-col{bottom:14px;top:auto;gap:9px;}
   /* zoom com dois dedos ja resolve no toque: os botoes +/- so ocupariam espaco */
   .zoom-ctrl{display:none;}
-  /* o modo esquematico e ferramenta de conferencia, nao interessa ao visitante no celular */
-  #btnBase{display:none;}
 }
 
 .toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:var(--ink);color:var(--ground);padding:9px 16px;border-radius:20px;font-size:12.5px;box-shadow:var(--shadow);z-index:20;opacity:0;pointer-events:none;transition:opacity .25s;}
@@ -173,12 +165,24 @@ svg#map.modo-esquematico .esquematico{display:inline;}
 .fav-head{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;
   padding:10px 10px 6px;font-weight:700;}
 .fav-vazio{padding:0 10px 12px;font-size:12.5px;color:var(--ink-soft);line-height:1.5;}
-.result-row .tirar-fav{border:none;background:none;color:var(--ink-soft);cursor:pointer;font-size:15px;flex:none;padding:0 2px;}
+/* estrela em cada linha da busca: favoritar sem precisar abrir o lugar */
+.row-dir{display:flex;align-items:center;gap:9px;flex:none;}
+.row-tag{color:var(--ink-soft);font-size:11px;}
+.row-fav{border:none;background:none;color:var(--ink-soft);font-size:17px;line-height:1;
+  cursor:pointer;padding:2px 0 2px 2px;flex:none;}
+.row-fav.on{color:#e8a300;}
 
-/* painel recolhido: some tudo menos a barra de busca, o mapa fica inteiro a vista */
-.sheet.recolhido .sheet-page,.sheet.recolhido .place-card{display:none;}
-#btnRecolher{transition:transform .18s;}
-.sheet.recolhido #btnRecolher{transform:rotate(180deg);}
+/* menu do hamburguer: tudo que saiu da tela principal entra aqui */
+.menu-list{padding:8px;display:flex;flex-direction:column;}
+.menu-item{display:flex;align-items:center;gap:12px;padding:12px 10px;border:none;background:none;
+  color:var(--ink);font-size:14px;font-family:'Roboto',sans-serif;text-align:left;cursor:pointer;
+  border-radius:8px;}
+.menu-item:hover{background:var(--ground);}
+.menu-item .mi{font-size:17px;width:22px;text-align:center;flex:none;}
+
+/* a seta ao lado da busca abre a lista de favoritos, como acesso rapido */
+#btnFavToggle{transition:transform .18s;}
+#btnFavToggle.aberto{transform:rotate(180deg);color:#e8a300;}
 
 /* cartao da rota: no celular sobe de baixo e abre puxando pela alca (estilo Google Maps) */
 .rota-card{position:absolute;z-index:7;left:10px;bottom:10px;width:320px;display:flex;flex-direction:column;
@@ -253,7 +257,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
         <div class="suggestions" id="mainSug"></div>
       </div>
       <button class="icon-btn gbar-side" id="btnClearSearch" title="Limpar" style="display:none;">✕</button>
-      <button class="icon-btn gbar-side" id="btnRecolher" title="Esconder o painel">⌃</button>
+      <button class="icon-btn gbar-side" id="btnFavToggle" title="Meus favoritos">⌄</button>
     </div>
 
     <div class="sheet-page active" id="page-search">
@@ -299,12 +303,19 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     <ol class="rota-passos" id="rotaPassos"></ol>
   </div>
 
-  <div class="hud panel legend-overlay" id="legendOverlay" style="display:none;">
+  <!-- Tudo que antes era botao flutuante mora aqui: a tela principal fica so com o
+       mapa, a busca e o botao de reenquadrar. -->
+  <div class="hud panel legend-overlay" id="menuOverlay" style="display:none;">
     <div class="legend-overlay-head">
-      <span>Legenda</span>
-      <button class="icon-btn" id="btnLegendClose">✕</button>
+      <span>Menu</span>
+      <button class="icon-btn" id="btnMenuClose">✕</button>
     </div>
-    <div class="legend-list" id="legendList"></div>
+    <div class="menu-list">
+      <button class="menu-item" id="btnProg"><span class="mi">📅</span><span>Programação</span></button>
+      <button class="menu-item" id="btnQr"><span class="mi">🔳</span><span>QR code do site</span></button>
+      <button class="menu-item" id="btnConfig"><span class="mi">⚙️</span><span>Configurações</span></button>
+      <button class="menu-item" id="btnBase"><span class="mi">🗺️</span><span id="btnBaseTxt">Mapa esquemático</span></button>
+    </div>
   </div>
 
   <div class="qr-overlay" id="qrOverlay" style="display:none;">
@@ -340,7 +351,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
         <input type="checkbox" id="cfgEscuro">
         <span>
           <b>Modo escuro</b>
-          <em>Desligado, o mapa e os painéis ficam claros. Sem marcar nada, segue o tema do seu aparelho.</em>
+          <em>Deixa o mapa e os painéis escuros. Fica gravado neste aparelho.</em>
         </span>
       </label>
       <label class="config-row" style="margin-bottom:14px">
@@ -365,11 +376,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   </div>
 
   <div class="fab-col hud">
-    <button class="gps-fab" id="btnProg" title="Programação do dia">📅</button>
-    <button class="gps-fab" id="btnQr" title="Mostrar QR code do site">🔳</button>
-    <button class="gps-fab" id="btnConfig" title="Configurações">⚙️</button>
-    <button class="gps-fab" id="btnBase" title="Alternar entre o mapa oficial e o esquemático">🗺️</button>
-    <button class="gps-fab" id="btnFit" title="Ver o mapa inteiro">⤢</button>
+    <button class="gps-fab" id="btnFit" title="Voltar para a Chama Crioula">⤢</button>
     <button class="gps-fab" id="btnGpsFab" title="Minha localização">📍</button>
     <div class="zoom-ctrl">
       <button id="zoomIn">+</button>
@@ -782,6 +789,23 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     VB.w = w; VB.h = h; VB.x = cx - w/2; VB.y = cy - h/2;
     applyVB();
   }
+  // O botão ⤢ sempre volta pra Chama Crioula, aproximado: é o ponto de referência de
+  // quem atende no balcão, e a mesma vista com que o site abre no celular.
+  function focarNaChama(){
+    const foco = (D.landmarks||[]).find(l=>l.nome===FOCO_INICIAL);
+    if(!foco){ enquadrarTudo(); return; }
+    const p = telaProp();
+    let w = Math.min(1200, VB0.w), h = w * p;
+    if(h > VB0.h){ h = VB0.h; w = h / p; }   // em retrato, a altura do mapa é o limite
+    let cx = foco.x, cy = foco.y;
+    if(w < VB0.w) cx = Math.min(Math.max(cx, VB0.x + w/2), VB0.x + VB0.w - w/2);
+    else cx = VB0.x + VB0.w/2;
+    if(h < VB0.h) cy = Math.min(Math.max(cy, VB0.y + h/2), VB0.y + VB0.h - h/2);
+    else cy = VB0.y + VB0.h/2;
+    VB.w = w; VB.h = h; VB.x = cx - w/2; VB.y = cy - h/2;
+    applyVB();
+  }
+
   // tela em retrato (celular/tablet em pe) começa preenchendo, senao o mapa vira uma tira.
   // Em tela deitada cabe o parque inteiro, que da a visao geral logo de cara.
   (telaProp() > 0.9 ? preencherTela : enquadrarTudo)();
@@ -829,7 +853,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     VB.w = nw; VB.h = nh;
     applyVB();
   }
-  document.getElementById('btnFit').addEventListener('click', enquadrarTudo);
+  document.getElementById('btnFit').addEventListener('click', focarNaChama);
   document.getElementById('zoomIn').addEventListener('click', ()=> zoom(0.75));
   document.getElementById('zoomOut').addEventListener('click', ()=> zoom(1.3));
   svg.addEventListener('wheel',(e)=>{ e.preventDefault(); zoom(e.deltaY>0?1.1:0.9, e.clientX, e.clientY); }, {passive:false});
@@ -903,7 +927,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   const placeCard = document.getElementById('placeCard');
   const btnBack = document.getElementById('btnBack');
   const btnClearSearch = document.getElementById('btnClearSearch');
-  const legendOverlay = document.getElementById('legendOverlay');
+  const menuOverlay = document.getElementById('menuOverlay');
   let currentTab = 'search';
 
   function showTab(tab){
@@ -916,38 +940,29 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     btnClearSearch.style.display = tab==='search' && mainSearch.value ? 'flex' : 'none';
   }
   btnBack.addEventListener('click', ()=>{
-    if(currentTab==='search'){ legendOverlay.style.display = legendOverlay.style.display==='none' ? 'block' : 'none'; }
+    if(currentTab==='search'){ menuOverlay.style.display = menuOverlay.style.display==='none' ? 'block' : 'none'; }
     else { limparRota(); showTab('search'); }   // voltar cancela a rota, nao so esconde o painel
   });
-  document.getElementById('btnRecolher').addEventListener('click', ()=>{
-    sheet.classList.toggle('recolhido');
+  // A lista de favoritos vive atrás dessa seta: com a busca vazia, ela ocupa o painel.
+  // Fechada, sobra só a barra de busca e o mapa inteiro à vista.
+  let favAberto = false;
+  const btnFavToggle = document.getElementById('btnFavToggle');
+  function pintaPainelVazio(){
+    if(mainSearch.value.trim()) return;      // digitando, quem manda são os resultados
+    btnFavToggle.classList.toggle('aberto', favAberto);
+    if(favAberto) renderFavoritos();
+    else searchResults.innerHTML = '';
+  }
+  btnFavToggle.addEventListener('click', ()=>{
+    favAberto = !favAberto;
+    if(favAberto){ mainSearch.value = ''; showTab('search'); placeCard.style.display = 'none';
+                   document.getElementById('btnClearSearch').style.display = 'none'; }
+    pintaPainelVazio();
   });
-  document.getElementById('btnLegendClose').addEventListener('click', ()=> legendOverlay.style.display='none');
+  document.getElementById('btnMenuClose').addEventListener('click', ()=> menuOverlay.style.display='none');
   btnClearSearch.addEventListener('click', ()=>{
     mainSearch.value=''; mainSearch.dispatchEvent(new Event('input')); mainSearch.focus();
     limparRota();
-  });
-
-  // ============ legenda ============
-  const legendItems = [
-    ['var(--lot-fill)','Lote numerado — piquete tradicionalista'],
-    ['var(--cat-special)','Chama Crioula — Piquete da Prefeitura / balcão de informações'],
-    ['var(--cat-stage)','Palco (Jayme Caetano Braun e Nico Fagundes)'],
-    ['var(--cat-service)','Serviços — saúde, polícia, brigada, juizado'],
-    ['var(--cat-shop)','Casa do Gaúcho / Feira de Artesanato'],
-    ['var(--cat-food)','Alimentação / lazer'],
-    ['var(--cat-market)','Mercado Farroupilha'],
-    ['var(--cat-agro)','Feira da Agricultura Familiar'],
-    ['var(--cat-media)','Imprensa (ex: Piquete RBS)'],
-    ['var(--cat-park)','Estacionamento'],
-    ['var(--cat-water)','Lago'],
-    ['var(--gps)','Sua localização (GPS)'],
-  ];
-  const legendList = document.getElementById('legendList');
-  legendItems.forEach(([color,label])=>{
-    const row = document.createElement('div'); row.className='row';
-    row.innerHTML = `<span class="swatch" style="background:${color}"></span><span class="txt">${label}</span>`;
-    legendList.appendChild(row);
   });
 
   // ============ waypoints / rota ============
@@ -1282,10 +1297,8 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   const qrOverlay = document.getElementById('qrOverlay');
   document.getElementById('qrUrl').textContent = QR_URL;
   function abrirQr(){
+    fecharOverlays();                 // fecha antes de abrir: senao fechava a si mesmo
     qrOverlay.style.display = 'flex';
-    legendOverlay.style.display = 'none';
-    configOverlay.style.display = 'none';
-    document.getElementById('progOverlay').style.display = 'none';
   }
   document.getElementById('btnQr').addEventListener('click', abrirQr);
   document.getElementById('btnQrClose').addEventListener('click', ()=> qrOverlay.style.display='none');
@@ -1313,9 +1326,9 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     renderStops(); renderStopMarkers(); updateTraceBtn();
     try{ localStorage.setItem('af2026_partida_fixa', cfgPartidaFixa.checked?'1':'0'); }catch(e){}
   }
-  // padrao: partida fixa na Chama Crioula (o site nasceu pro balcao de informacoes)
-  try{ cfgPartidaFixa.checked = localStorage.getItem('af2026_partida_fixa') !== '0'; }
-  catch(e){ cfgPartidaFixa.checked = true; }
+  // padrao: desligada. So fica ligada se a pessoa marcar ('1' gravado no aparelho).
+  try{ cfgPartidaFixa.checked = localStorage.getItem('af2026_partida_fixa') === '1'; }
+  catch(e){ cfgPartidaFixa.checked = false; }
   cfgPartidaFixa.addEventListener('change', ()=>{
     aplicaPartidaFixa();
     toast(cfgPartidaFixa.checked ? 'Partida fixa na Chama Crioula ligada.' : 'Partida fixa desligada.');
@@ -1338,8 +1351,8 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   aplicaGps();
 
   document.getElementById('btnConfig').addEventListener('click', ()=>{
-    document.getElementById('progOverlay').style.display = 'none';
-    configOverlay.style.display = configOverlay.style.display==='none' ? 'block' : 'none';
+    fecharOverlays();
+    configOverlay.style.display = 'block';
   });
   document.getElementById('btnConfigClose').addEventListener('click', ()=> configOverlay.style.display='none');
 
@@ -1439,12 +1452,15 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   function aplicaBase(esquematico){
     if(esquematico) carregarIconesEsquematicos();
     svg.classList.toggle('modo-esquematico', esquematico);
-    btnBase.textContent = esquematico ? '🖼️' : '🗺️';
+    document.getElementById('btnBaseTxt').textContent = esquematico ? 'Mapa oficial' : 'Mapa esquemático';
     btnBase.title = esquematico ? 'Ver o mapa oficial' : 'Ver o mapa esquemático';
     try{ localStorage.setItem('af2026_base', esquematico?'esq':'oficial'); }catch(e){}
   }
   aplicaBase((()=>{ try{ return localStorage.getItem('af2026_base')==='esq'; }catch(e){ return false; } })());
-  btnBase.addEventListener('click', ()=> aplicaBase(!svg.classList.contains('modo-esquematico')));
+  btnBase.addEventListener('click', ()=>{
+    aplicaBase(!svg.classList.contains('modo-esquematico'));
+    menuOverlay.style.display = 'none';
+  });
 
   // ============ tema claro/escuro (manual, além do automático por sistema) ============
   const cfgEscuro = document.getElementById('cfgEscuro');
@@ -1455,10 +1471,10 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     try{ t ? localStorage.setItem('af2026_theme', t) : localStorage.removeItem('af2026_theme'); }catch(e){}
   }
   const temaSalvo = (()=>{ try{ return localStorage.getItem('af2026_theme'); }catch(e){ return null; } })();
-  applyTheme(temaSalvo);
-  // sem preferencia salva, o checkbox reflete o tema do proprio aparelho
-  cfgEscuro.checked = temaSalvo ? temaSalvo==='dark'
-                                : matchMedia('(prefers-color-scheme: dark)').matches;
+  // padrao: claro, mesmo com o aparelho no escuro — a arte oficial do mapa e clara e
+  // fica estranha num painel preto. O escuro so entra se a pessoa marcar, e fica gravado.
+  applyTheme(temaSalvo || 'light');
+  cfgEscuro.checked = temaSalvo === 'dark';
   cfgEscuro.addEventListener('change', ()=>{
     applyTheme(cfgEscuro.checked ? 'dark' : 'light');
     toast(cfgEscuro.checked ? 'Modo escuro ligado.' : 'Modo claro ligado.');
@@ -1512,15 +1528,10 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     searchResults.innerHTML=''; mainSug.classList.remove('open');
     placeCard.style.display = 'none';
     btnClearSearch.style.display = q ? 'flex' : 'none';
-    if(!q){ renderFavoritos(); return; }
+    if(!q){ pintaPainelVazio(); return; }
     const found = points.filter(p=>matches(p,q)).slice(0,60);
     if(found.length===0){ searchResults.innerHTML = '<div class="result-row">Nada encontrado.</div>'; return; }
-    found.forEach(p=>{
-      const row = document.createElement('div'); row.className='result-row';
-      row.innerHTML = `<span>${p.num?`<b>${p.num}</b> — `:''}${p.tipo?p.tipo+' ':''}${p.nome}</span><span style="color:var(--ink-soft);font-size:11px">${p.catGroup||(p.kind==='lote'?'lote':'')}</span>`;
-      row.addEventListener('click', ()=> onMapPick(p));
-      searchResults.appendChild(row);
-    });
+    found.forEach(p=> searchResults.appendChild(linhaResultado(p)));
   });
 
   let selectedPlace = null;
@@ -1557,11 +1568,17 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   }
   document.getElementById('btnPlaceDirections').addEventListener('click', ()=>{
     if(!selectedPlace || selectedPlace.semLocal) return;
-    let idx = stops.findIndex(s=>!s);
-    if(idx===-1) idx = stops.length-1;
-    stops[idx] = selectedPlace;
+    // o lugar escolhido e o DESTINO (como no Google Maps); a partida fica pra preencher
+    const ultimo = stops.length-1;
+    if(!stops[ultimo]) stops[ultimo] = selectedPlace;
+    else {
+      const vago = stops.findIndex(s=>!s);
+      stops[vago === -1 ? ultimo : vago] = selectedPlace;
+    }
     showTab('route');
     renderStops(); renderStopMarkers(); updateTraceBtn();
+    const vazio = [...stopsList.querySelectorAll('input')].find(i=>!i.value);
+    if(vazio) vazio.focus();
   });
 
   // ============ favoritos ============
@@ -1591,24 +1608,47 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     pintaFav(selectedPlace);
     toast(virouFav ? 'Salvo nos favoritos.' : 'Removido dos favoritos.');
   });
+  // Uma linha de resultado, com estrela. Assim dá pra favoritar direto da busca, sem
+  // precisar abrir o lugar (e sem depender de desligar a partida fixa pra ver o cartão).
+  function linhaResultado(p, naListaDeFavoritos){
+    const row = document.createElement('div'); row.className = 'result-row';
+    const txt = document.createElement('span');
+    txt.innerHTML = `${p.num?`<b>${p.num}</b> — `:''}${p.tipo?p.tipo+' ':''}${p.nome}`;
+    const dir = document.createElement('span'); dir.className = 'row-dir';
+    if(!naListaDeFavoritos){
+      const tag = document.createElement('span'); tag.className = 'row-tag';
+      tag.textContent = p.catGroup || (p.kind==='lote' ? 'lote' : '');
+      dir.appendChild(tag);
+    }
+    const estrela = document.createElement('button');
+    function pinta(on){
+      estrela.textContent = on ? '★' : '☆';
+      estrela.classList.toggle('on', on);
+      estrela.title = on ? 'Remover dos favoritos' : 'Favoritar';
+    }
+    estrela.className = 'row-fav';
+    pinta(ehFav(p));
+    estrela.addEventListener('click', (ev)=>{
+      ev.stopPropagation();                 // a estrela não abre o lugar
+      const virouFav = alternarFav(p);
+      pinta(virouFav);
+      if(naListaDeFavoritos && !virouFav) renderFavoritos();
+    });
+    dir.appendChild(estrela);
+    row.appendChild(txt); row.appendChild(dir);
+    row.addEventListener('click', ()=> onMapPick(p));
+    return row;
+  }
+
   function renderFavoritos(){
     const achados = lerFavs().map(id => points.find(p => idDe(p)===id)).filter(Boolean);
     searchResults.innerHTML = '<div class="fav-head">Favoritos</div>';
     if(!achados.length){
-      searchResults.innerHTML += '<div class="fav-vazio">Abra um lugar e toque na estrela ' +
-        'para ele ficar salvo aqui.</div>';
+      searchResults.innerHTML += '<div class="fav-vazio">Toque na estrela ao lado de qualquer ' +
+        'resultado da busca para ele ficar salvo aqui.</div>';
       return;
     }
-    achados.forEach(p=>{
-      const row = document.createElement('div'); row.className='result-row';
-      row.innerHTML = `<span>${p.num?`<b>${p.num}</b> — `:''}${p.tipo?p.tipo+' ':''}${p.nome}</span>`;
-      const tirar = document.createElement('button');
-      tirar.className='tirar-fav'; tirar.textContent='★'; tirar.title='Remover dos favoritos';
-      tirar.addEventListener('click', (ev)=>{ ev.stopPropagation(); alternarFav(p); renderFavoritos(); });
-      row.appendChild(tirar);
-      row.addEventListener('click', ()=> onMapPick(p));
-      searchResults.appendChild(row);
-    });
+    achados.forEach(p=> searchResults.appendChild(linhaResultado(p, true)));
   }
 
   // ============ programacao ============
@@ -1679,14 +1719,19 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     const i = PROG.findIndex(d=>d.data === hojeDDMM());
     progDiaSel = i >= 0 ? i : progDiaSel;
     renderProgDias(); renderProgLista();
+    fecharOverlays();
     progOverlay.style.display = 'block';
-    legendOverlay.style.display = 'none';
-    configOverlay.style.display = 'none';
-    qrOverlay.style.display = 'none';
   }
   document.getElementById('btnProg').addEventListener('click', abrirProg);
   document.getElementById('btnProgClose').addEventListener('click', ()=> progOverlay.style.display='none');
 
+  // ============ menu ============
+  function fecharOverlays(){
+    menuOverlay.style.display = 'none';
+    configOverlay.style.display = 'none';
+    progOverlay.style.display = 'none';
+    qrOverlay.style.display = 'none';
+  }
   // ============ funcionar sem sinal ============
   // O sinal no parque cai o tempo todo. O service worker guarda mapa e dados no
   // aparelho; so roda em https (ou localhost), entao no file:// simplesmente nao entra.
@@ -1699,7 +1744,6 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   // primeira renderização
   if(cfgPartidaFixa.checked) aplicaPartidaFixa();
   renderStopMarkers();
-  renderFavoritos();
 })();
 </script>
 </body>
