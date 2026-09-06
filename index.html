@@ -505,16 +505,47 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   // lotes — o 120 entrava pela Hugo da Cunha Alves cortando o 127, quando a porta dele
   // dá na Oliveira Silveira. A projeção vira um nó novo no meio da aresta, ligado às
   // duas pontas dela.
-  function ligaNaRua(pid, x, y, vid){
-    let melhor = null;
+  // O segmento p-q corta a caixa de algum lote? (Liang-Barsky)
+  const meioLote = { w: D.lotBoxSize.w/2, h: D.lotBoxSize.h/2 };
+  function cortaCaixa(p, q, cx, cy){
+    const x0 = cx-meioLote.w, x1 = cx+meioLote.w, y0 = cy-meioLote.h, y1 = cy+meioLote.h;
+    let t0 = 0, t1 = 1;
+    const dx = q[0]-p[0], dy = q[1]-p[1];
+    const corta = (pp, qq)=>{
+      if(pp === 0) return qq >= 0;
+      const r = qq/pp;
+      if(pp < 0){ if(r > t1) return false; if(r > t0) t0 = r; }
+      else      { if(r < t0) return false; if(r < t1) t1 = r; }
+      return true;
+    };
+    return corta(-dx, p[0]-x0) && corta(dx, x1-p[0]) && corta(-dy, p[1]-y0) && corta(dy, y1-p[1]);
+  }
+  function atravessaLote(p, q, meuNum){
+    const minX = Math.min(p[0],q[0])-meioLote.w, maxX = Math.max(p[0],q[0])+meioLote.w;
+    const minY = Math.min(p[1],q[1])-meioLote.h, maxY = Math.max(p[1],q[1])+meioLote.h;
+    for(const l of D.lots){
+      if(l.x < minX || l.x > maxX || l.y < minY || l.y > maxY) continue;  // fora da faixa
+      if(meuNum != null && String(l.num) === meuNum) continue;
+      if(cortaCaixa(p, q, l.x, l.y)) return true;
+    }
+    return false;
+  }
+
+  function ligaNaRua(pid, x, y, vid, meuNum){
+    const cands = [];
     D.roadEdges.forEach(([ia,ib])=>{
       const a = D.roadNodes[ia], b = D.roadNodes[ib];
       if(!a || !b) return;
       const { pt } = projeta([x,y], a, b);
-      const d = dist([x,y], pt);
-      if(!melhor || d < melhor.d) melhor = { d, pt, ia, ib };
+      cands.push({ d: dist([x,y], pt), pt, ia, ib });
     });
-    if(!melhor) return;
+    if(!cands.length) return;
+    cands.sort((p,q)=> p.d - q.d);
+    // Entre as ruas mais próximas, fica com a primeira que dá pra alcançar sem passar
+    // por dentro de outro lote. Sobra só o lote 215: a Rua Cyra Dutra Ferreira fica
+    // 35 unidades mais perto em linha reta, mas essa reta atravessa o 217 — a porta
+    // dele dá na Presidente Ademir de Morais, como todos os vizinhos de 203 a 214.
+    let melhor = cands.find(c => !atravessaLote([x,y], c.pt, meuNum)) || cands[0];
     // caiu em cima de uma ponta: usa a ponta e não cria nó novo
     const da = dist(melhor.pt, D.roadNodes[melhor.ia]);
     const db = dist(melhor.pt, D.roadNodes[melhor.ib]);
@@ -532,7 +563,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     const pid = 'PT_'+idx;
     p._nodeId = pid;
     addNode(pid);
-    ligaNaRua(pid, p.x, p.y, 'VIA_'+idx);
+    ligaNaRua(pid, p.x, p.y, 'VIA_'+idx, p.kind==='lote' ? p.num : null);
   });
 
   function dijkstra(startId, endId){
@@ -1379,7 +1410,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
       // liga o ponto GPS na malha viária
       addNode(gpsPoint._nodeId = 'GPS_NODE');
       graph['GPS_NODE'] = [];
-      ligaNaRua('GPS_NODE', gpsPoint.x, gpsPoint.y, 'VIA_GPS');
+      ligaNaRua('GPS_NODE', gpsPoint.x, gpsPoint.y, 'VIA_GPS', null);
       stops[0] = gpsPoint;
       renderStops(); renderStopMarkers(); updateTraceBtn();
       flyTo(gpsPoint.x, gpsPoint.y, 900);
