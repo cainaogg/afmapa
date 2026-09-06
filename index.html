@@ -1135,7 +1135,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     routeLine.setAttribute('points', ptsStr);
     routeLine.classList.add('show');
     rotaTracada = true;
-    const meters = Math.round(totalDist * 0.1124);
+    const meters = Math.round(totalDist * M_POR_UNIDADE);
     const minutes = Math.max(1, Math.round(meters/80)); // ~4.8km/h caminhando
     info.classList.remove('show');   // o detalhe agora vive no cartao da rota
     encolherRota(filled, meters, minutes, segInfo);
@@ -1157,7 +1157,11 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   // ============ passos escritos da rota ============
   // Os nos de rua carregam o nome da rua no proprio id (Rua_Barbosa_Lessa_1), entao da
   // pra dizer por qual rua a pessoa anda e pra que lado ela vira em cada esquina.
-  const M_POR_UNIDADE = 0.1124;
+  // Medida com os 8 pontos de referencia do GPS (ver PONTOS_GPS): 10 pares dos 5 pontos
+  // bem pareados dao 0.11670 m por unidade por minimos quadrados, e o ajuste de
+  // similaridade cai no mesmo valor por outro caminho. Antes estava 0.1124, sem
+  // procedencia registrada — as distancias sairam 3.8% curtas esse tempo todo.
+  const M_POR_UNIDADE = 0.1167;
   // A que rua um nó pertence. As ruas que o mapa oficial não nomeia estão numeradas
   // pelo próprio id (Sem_Nome_9_1 e Rua_sem_nome_5_2 = ruas sem nome 9 e 5), e a
   // numeração não se repete entre as duas grafias — dá pra chamar cada uma pelo número
@@ -1439,12 +1443,31 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   document.getElementById('btnConfigClose').addEventListener('click', ()=> configOverlay.style.display='none');
 
   // ============ GPS ============
-  // transformacao afim lat/lng -> coordenadas locais do mapa, calibrada por minimos quadrados
-  // com 10 pontos reais (pegos no Google Maps) comparados com a posicao deles no nosso mapa.
-  // erro medio ficou em torno de 85 unidades (~1 lote de largura) - poderia melhorar com mais pontos.
+  // Pontos de referencia levantados no Google Maps pelo Caina, com o marco correspondente
+  // no nosso mapa. Ficam registrados aqui pra dar pra auditar e refazer o ajuste — os 10
+  // pontos da primeira versao se perderam, sobraram so os coeficientes.
+  //
+  //   nome                     latitude             longitude            marco no mapa
+  //   Palco Jayme C. Braun     -30.04101888697755   -51.23775400743938   Palco Jayme Caetano Braun
+  //   Acesso Estac. Leste      -30.041211171276363  -51.23385493545118   Estacionamento Leste (acesso)
+  //   Portico das Cuias        -30.042210748721452  -51.2347890146585    Portico_das_Cuias
+  //   Rotula das Cuias         -30.04240865323654   -51.23335147959289   rotula_das_cuias
+  //   Playground Sepe Tiaraju  -30.04040899348694   -51.23866165083      Playground Sepe Tiaraju
+  //
+  // Outros tres pontos foram levantados e DESCARTADOS do ajuste porque o pino do Google e
+  // o nosso marco nao sao o mesmo lugar fisico (10 a 16 m de discrepancia, contra 4 m dos
+  // de cima): Portico da Orla (-30.041803105102137, -51.23805991662277), Casa do Gaucho
+  // (-30.0406154463047, -51.23662652338389) e Estancia da Harmonia (-30.04100529173799,
+  // -51.23718284032006). No nosso mapa a Casa do Gaucho, por exemplo, e o centro de um
+  // retangulo de 420x380 — o predio inteiro — e o pino do Google fica num canto dele.
+  //
+  // Ajuste de SIMILARIDADE (rotacao + escala unica), nao afim: o mapa e uma planta fiel,
+  // entao a escala tem que ser igual nos dois eixos. O ajuste antigo era afim e saiu com
+  // 10% de diferenca entre os eixos, o que fazia o erro crescer com a distancia.
+  // Giro -6.08 graus, escala 0.1167 m/unidade, residuo 2.5 m (pior 4.1 m).
   const GPS_FIT = {
-    x: [812373.456, -29776.297, 40731491.4],
-    y: [-120266.787, -1041075.070, -37435236.609],
+    x: [821704.177, -100546.263, 39083567.379],
+    y: [-87478.886, -944448.290, -32852461.706],
   };
   function gpsToLocal(lat,lng){
     const x = GPS_FIT.x[0]*lng + GPS_FIT.x[1]*lat + GPS_FIT.x[2];
