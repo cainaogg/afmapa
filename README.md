@@ -44,4 +44,4 @@ O botao do QR mostra um codigo embutido no proprio `index.html` como SVG, sem
 depender de internet nem de biblioteca externa. Se a URL do site mudar (por
 exemplo ao renomear o repositorio), regere com:
 
-    python3 gerar_qr.py https://cainaogg.github.io/NOVO-NOME/
+    python3 gerar_qr.py https://cainaogg.github.io/afmapa/
