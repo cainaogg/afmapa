@@ -2,7 +2,7 @@
 // visitante precisa (mapa, lotes, rotas) e todo estatico.
 //
 // BUMPAR O CACHE quando publicar: so trocar o numero abaixo.
-const CACHE = 'af2026-v1';
+const CACHE = 'af2026-v2';
 
 // O essencial pra desenhar o mapa. As duas imagens da base sao 2.2 MB juntas, mas
 // sem elas o mapa offline fica em branco.

@@ -195,9 +195,11 @@ svg#map.modo-esquematico .esquematico{display:inline;}
 @media (min-width: 721px){ .rota-passos{display:block;} }
 @media (max-width: 720px){
   .rota-card{left:0;right:0;bottom:0;width:auto;border-radius:16px 16px 0 0;max-height:78dvh;}
-  .rota-alca{display:block;padding:8px 0 2px;cursor:grab;touch-action:none;flex:none;}
-  .rota-alca span{display:block;width:38px;height:4px;border-radius:2px;background:var(--line);margin:0 auto;}
-  .rota-passos{max-height:calc(78dvh - 90px);}
+  .rota-alca{display:block;padding:12px 0 6px;cursor:grab;flex:none;}
+  .rota-alca span{display:block;width:44px;height:5px;border-radius:3px;background:var(--line);margin:0 auto;}
+  /* o dedo pega o cartao inteiro; so a lista de passos continua rolando normal */
+  .rota-card{touch-action:none;}
+  .rota-passos{touch-action:pan-y;max-height:calc(78dvh - 96px);}
   /* com o cartao da rota embaixo, os botoes sobem pra continuar alcancaveis */
   body.com-rota .fab-col{bottom:104px;}
 }
@@ -1136,18 +1138,23 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   }
   document.getElementById('btnFecharRota').addEventListener('click', ()=>{ limparRota(); showTab('search'); });
 
-  const rotaAlca = document.getElementById('rotaAlca');
+  // A alca sozinha tem 14 px de altura: no celular o dedo errava. O gesto vale pro
+  // cartao inteiro, menos os botoes e a propria lista de passos (que precisa rolar).
   let puxada = null;
-  rotaAlca.addEventListener('pointerdown', (ev)=>{ puxada = ev.clientY; rotaAlca.setPointerCapture(ev.pointerId); });
-  const soltarAlca = (ev)=>{
+  rotaCard.addEventListener('pointerdown', (ev)=>{
+    if(ev.target.closest('button') || ev.target.closest('#rotaPassos')) return;
+    ev.preventDefault();   // sem isso o Android trata como rolagem e manda pointercancel
+    puxada = ev.clientY;
+    rotaCard.setPointerCapture(ev.pointerId);
+  });
+  rotaCard.addEventListener('pointerup', (ev)=>{
     if(puxada==null) return;
     const dy = ev.clientY - puxada; puxada = null;
     if(dy < -25)      rotaCard.classList.add('aberta');
     else if(dy > 25)  rotaCard.classList.remove('aberta');
     else              rotaCard.classList.toggle('aberta');   // toque simples tambem abre
-  };
-  rotaAlca.addEventListener('pointerup', soltarAlca);
-  rotaAlca.addEventListener('pointercancel', ()=>{ puxada = null; });
+  });
+  rotaCard.addEventListener('pointercancel', ()=>{ puxada = null; });
 
   function pararGps(){
     if(gpsWatchId!=null){ navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId=null; }
