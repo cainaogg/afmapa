@@ -351,7 +351,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
         <input type="checkbox" id="cfgEscuro">
         <span>
           <b>Modo escuro</b>
-          <em>Deixa o mapa e os painéis escuros. Fica gravado neste aparelho.</em>
+          <em>Desligado, o mapa e os painéis ficam claros. Sem marcar nada, segue o tema do seu aparelho.</em>
         </span>
       </label>
       <label class="config-row" style="margin-bottom:14px">
@@ -1138,21 +1138,30 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   // Os nos de rua carregam o nome da rua no proprio id (Rua_Barbosa_Lessa_1), entao da
   // pra dizer por qual rua a pessoa anda e pra que lado ela vira em cada esquina.
   const M_POR_UNIDADE = 0.1124;
-  function nomeDaRua(id){
+  // A que rua um nó pertence. As ruas que o mapa oficial não nomeia estão numeradas
+  // pelo próprio id (Sem_Nome_9_1 e Rua_sem_nome_5_2 = ruas sem nome 9 e 5), e a
+  // numeração não se repete entre as duas grafias — dá pra chamar cada uma pelo número
+  // em vez de deixar o passo mudo.
+  function ruaDoNo(id){
+    const sn = /^(?:Rua_sem_nome|Sem_Nome)_(\d+)_\d+$/i.exec(id);
+    if(sn) return { chave:'sn'+sn[1], nome:'Rua sem nome '+sn[1] };
     const bruto = String(id).replace(/_\d+(_\d+)?$/,'');
-    // "rua sem nome" e o que o mapa oficial nao nomeia; praca/portico/estacionamento
-    // sao lugares, nao vias — nos dois casos nao da pra dizer "vire na rua tal"
-    if(/^(Rua_sem_nome|Sem_Nome)/i.test(bruto)) return '';
-    if(/^(rotula|Pra[cç]a|P[oó]rtico|Casa_do|Estacionamento)/i.test(bruto)) return '';
-    // PT_<i> e o no que liga o lote/marco a rua; GPS_NODE e a posicao do aparelho
-    if(/^(PT|GPS|VIA)/.test(bruto)) return '';
-    return bruto.replace(/_/g,' ');
+    // praça/pórtico/estacionamento são lugares, não vias; PT_/VIA_/GPS são nós de
+    // entrada que criamos — em nenhum deles dá pra dizer "vire na rua tal"
+    if(/^(rotula|Pra[cç]a|P[oó]rtico|Casa_do|Estacionamento|PT|GPS|VIA)/i.test(bruto)) return null;
+    const nome = bruto.replace(/_/g,' ');
+    const chave = semAcento(nome);
+    // grafia do rotulo do mapa oficial ganha: o id do no vem sem acento em tres ruas
+    // (Otavio, Jose Claudio, Aparicio) e a rota misturava as duas formas
+    return { chave, nome: grafiaOficial[chave] || nome };
   }
   // O nome do passo vem da ARESTA, não do nó. A Rua Oliveira Silveira, por exemplo,
   // está no grafo como uma aresta longa entre um nó da Paixão Cortes e um da Barbosa
   // Lessa: pelo nó, o trecho dela saía com o nome da rua errada.
   // Ordem: (1) as duas pontas concordam — os nós foram nomeados à mão, mandam eles;
   // (2) um rótulo de rua paralelo e em cima da aresta; (3) o nó de chegada.
+  const grafiaOficial = {};
+  D.streetLabels.forEach(s=>{ grafiaOficial[semAcento(s.text)] = s.text; });
   const rotulosSeg = D.streetLabels.map(s=>{
     const a = s.rot * Math.PI/180;
     return { txt:s.text, a:[s.x, s.y], b:[s.x + Math.cos(a)*s.len, s.y + Math.sin(a)*s.len] };
@@ -1162,6 +1171,17 @@ svg#map.modo-esquematico .esquematico{display:inline;}
               * 180/Math.PI % 180;
     return g > 90 ? 180-g : g;
   }
+  // vizinhos de cada nó de rua, pra saber por onde uma rua continua
+  const vizinhos = {};
+  D.roadEdges.forEach(([a,b])=>{
+    (vizinhos[a] = vizinhos[a] || []).push(b);
+    (vizinhos[b] = vizinhos[b] || []).push(a);
+  });
+  // desvio entre seguir de a pra b e depois de b pra c (0 = reto)
+  function desvio(a,b,c){
+    const g = Math.abs(Math.atan2(b[1]-a[1], b[0]-a[0]) - Math.atan2(c[1]-b[1], c[0]-b[0])) * 180/Math.PI;
+    return Math.min(g, 360-g);
+  }
   const cacheAresta = {};
   function nomeDaAresta(x,y){
     // nó de entrada: quem tem nome é a rua em que ele foi criado
@@ -1169,27 +1189,45 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     const ia = via ? via[0] : x, ib = via ? via[1] : y;
     const chave = ia + '\u0000' + ib;
     if(chave in cacheAresta) return cacheAresta[chave];
-    const nA = nomeDaRua(ia), nB = nomeDaRua(ib);
-    let nome;
-    if(nA && nA === nB){
-      nome = nA;
-    } else {
-      const a = D.roadNodes[ia], b = D.roadNodes[ib];
-      let rot = null;
-      if(a && b){
-        const meio = [(a[0]+b[0])/2, (a[1]+b[1])/2];
-        rotulosSeg.forEach(r=>{
-          if(anguloEntre(a,b,r.a,r.b) > 20) return;
-          const { pt } = projeta(meio, r.a, r.b);
-          const d = dist(meio, pt);
-          if(d > 60) return;
-          if(!rot || d < rot.d) rot = { d, txt:r.txt };
-        });
-      }
-      nome = rot ? rot.txt : (nB || nA);
+    cacheAresta[chave] = calculaNomeDaAresta(ia, ib);
+    return cacheAresta[chave];
+  }
+  function calculaNomeDaAresta(ia, ib){
+    const a = D.roadNodes[ia], b = D.roadNodes[ib];
+    if(!a || !b) return '';
+    const rA = ruaDoNo(ia), rB = ruaDoNo(ib);
+    // 1) as duas pontas são da mesma rua — os nós foram nomeados à mão, mandam eles
+    if(rA && rB && rA.chave === rB.chave) return rA.nome;
+    // 2) um rótulo de rua paralelo e em cima da aresta
+    const meio = [(a[0]+b[0])/2, (a[1]+b[1])/2];
+    let rot = null;
+    rotulosSeg.forEach(r=>{
+      if(anguloEntre(a,b,r.a,r.b) > 20) return;
+      const { pt } = projeta(meio, r.a, r.b);
+      const d = dist(meio, pt);
+      if(d > 60) return;
+      if(!rot || d < rot.d) rot = { d, txt:r.txt };
+    });
+    if(rot) return rot.txt;
+    // 3) a aresta CONTINUA a rua de uma das pontas? Os cruzamentos foram nomeados pela
+    //    rua transversal (Rua_Gildo_de_Freitas_2 fica em cima da rua sem nome 9), então
+    //    a prova é seguir reto: se depois de ib a rua de ia recomeça quase na mesma
+    //    direção, a aresta é dela. Sem isso o passo dizia "siga pela Gildo de Freitas"
+    //    para quem só estava cruzando a Gildo de Freitas.
+    function continua(rua, de, para){
+      if(!rua) return false;
+      const P = D.roadNodes[de], Q = D.roadNodes[para];
+      return (vizinhos[para] || []).some(c=>{
+        if(c === de) return false;
+        const r = ruaDoNo(c);
+        return r && r.chave === rua.chave && D.roadNodes[c] && desvio(P, Q, D.roadNodes[c]) < 35;
+      });
     }
-    cacheAresta[chave] = nome;
-    return nome;
+    const segueA = continua(rA, ia, ib);
+    const segueB = continua(rB, ib, ia);
+    if(segueA && !segueB) return rA.nome;
+    if(segueB && !segueA) return rB.nome;
+    return '';   // nenhuma prova: melhor "vire à direita e siga 20 m" do que a rua errada
   }
 
   function giro(a,b){
@@ -1209,6 +1247,25 @@ svg#map.modo-esquematico .esquematico{display:inline;}
       const ult = pernas[pernas.length-1];
       if(ult && ult.nome===nome){ ult.d += d; ult.fim = pts[i+1]; }
       else pernas.push({ nome, d, ini:pts[i], fim:pts[i+1] });
+    }
+    // Toco sem nome que segue reto na perna vizinha é parte dela: o pedaço entre a Rua
+    // Dimas Costa e a rua sem nome 9, por exemplo, é o começo da rua sem nome 9.
+    const dirDe = p => [p.fim[0]-p.ini[0], p.fim[1]-p.ini[1]];
+    const anguloVet = (u,v)=>{
+      const g = Math.abs(Math.atan2(u[1],u[0]) - Math.atan2(v[1],v[0])) * 180/Math.PI;
+      return Math.min(g, 360-g);
+    };
+    pernas.forEach((perna,i)=>{
+      if(perna.nome) return;
+      const prox = pernas[i+1], ant = pernas[i-1];
+      // 40 graus e a mesma folga do 'siga em frente': se nao vira, nao e outra rua
+      if(prox && prox.nome && anguloVet(dirDe(perna), dirDe(prox)) < 40){ perna.nome = prox.nome; return; }
+      if(ant  && ant.nome  && anguloVet(dirDe(ant), dirDe(perna)) < 40){ perna.nome = ant.nome; }
+    });
+    for(let i=pernas.length-1;i>0;i--){          // junta de novo o que ficou com o mesmo nome
+      if(pernas[i].nome && pernas[i].nome === pernas[i-1].nome){
+        pernas[i-1].d += pernas[i].d; pernas[i-1].fim = pernas[i].fim; pernas.splice(i,1);
+      }
     }
     // desvio de poucos metros so polui a lista: entra na perna anterior
     for(let i=pernas.length-1;i>0;i--){
@@ -1471,10 +1528,10 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     try{ t ? localStorage.setItem('af2026_theme', t) : localStorage.removeItem('af2026_theme'); }catch(e){}
   }
   const temaSalvo = (()=>{ try{ return localStorage.getItem('af2026_theme'); }catch(e){ return null; } })();
-  // padrao: claro, mesmo com o aparelho no escuro — a arte oficial do mapa e clara e
-  // fica estranha num painel preto. O escuro so entra se a pessoa marcar, e fica gravado.
-  applyTheme(temaSalvo || 'light');
-  cfgEscuro.checked = temaSalvo === 'dark';
+  applyTheme(temaSalvo);
+  // sem preferencia salva, segue o tema do proprio aparelho (e o checkbox reflete isso)
+  cfgEscuro.checked = temaSalvo ? temaSalvo==='dark'
+                                : matchMedia('(prefers-color-scheme: dark)').matches;
   cfgEscuro.addEventListener('change', ()=>{
     applyTheme(cfgEscuro.checked ? 'dark' : 'light');
     toast(cfgEscuro.checked ? 'Modo escuro ligado.' : 'Modo claro ligado.');
