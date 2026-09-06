@@ -799,28 +799,9 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     VB.w = w; VB.h = h; VB.x = cx - w/2; VB.y = cy - h/2;
     applyVB();
   }
-  // PREENCHE a tela: em celular na vertical o mapa e largo demais pra caber legivel,
-  // entao entra encaixado na altura e o usuario arrasta pros lados.
-  // Abre centralizado na Chama Crioula (Piquete da Prefeitura), que e o ponto de
-  // referencia de quem atende no balcao de informacoes.
+  // A Chama Crioula (Piquete da Prefeitura) e o ponto de referencia de quem atende no
+  // balcao: e onde o site abre e pra onde o botao ⤢ sempre volta, aproximado.
   const FOCO_INICIAL = 'Chama Crioula';
-  function preencherTela(){
-    const p = telaProp();
-    let h = VB0.h, w = h / p;
-    if(w > VB0.w){ w = VB0.w; h = w * p; }
-    const foco = (D.landmarks||[]).find(l=>l.nome===FOCO_INICIAL);
-    let cx = foco ? foco.x : VB0.x + VB0.w/2;
-    let cy = foco ? foco.y : VB0.y + VB0.h/2;
-    // nao deixa a vista sair da area do mapa
-    if(w < VB0.w) cx = Math.min(Math.max(cx, VB0.x + w/2), VB0.x + VB0.w - w/2);
-    else cx = VB0.x + VB0.w/2;
-    if(h < VB0.h) cy = Math.min(Math.max(cy, VB0.y + h/2), VB0.y + VB0.h - h/2);
-    else cy = VB0.y + VB0.h/2;
-    VB.w = w; VB.h = h; VB.x = cx - w/2; VB.y = cy - h/2;
-    applyVB();
-  }
-  // O botão ⤢ sempre volta pra Chama Crioula, aproximado: é o ponto de referência de
-  // quem atende no balcão, e a mesma vista com que o site abre no celular.
   function focarNaChama(){
     const foco = (D.landmarks||[]).find(l=>l.nome===FOCO_INICIAL);
     if(!foco){ enquadrarTudo(); return; }
@@ -836,9 +817,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     applyVB();
   }
 
-  // tela em retrato (celular/tablet em pe) começa preenchendo, senao o mapa vira uma tira.
-  // Em tela deitada cabe o parque inteiro, que da a visao geral logo de cara.
-  (telaProp() > 0.9 ? preencherTela : enquadrarTudo)();
+  focarNaChama();
   addEventListener('resize', ()=>{
     // mantem a proporcao do viewBox igual a da tela ao girar o celular
     const r = svg.getBoundingClientRect();
