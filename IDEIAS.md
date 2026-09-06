@@ -138,6 +138,41 @@ contexto de uso.
 
 ---
 
+## 4b. Atalhos "mais perto daqui" — FEITO
+
+Fileira de botões abaixo da busca: Banheiro, Comida, Ambulatório, Brigada,
+Estacionamento e Saída. Cada um roda um Dijkstra só (`distanciasDe`) e devolve o
+mais próximo. A origem é a partida fixa, senão o GPS, senão o centro do que está
+na tela — então a resposta muda conforme você navega: do lote 120 o banheiro mais
+perto é o Cancha Reta (194 m), do 225 é o Simões Lopes Neto (108 m).
+
+Vale porque a resposta não é óbvia: são 4 sanitários no parque inteiro, e os seis
+serviços (ambulatório, brigada, bombeiros, duas polícias, juizado) estão todos
+juntos na Casa do Gaúcho.
+
+---
+
+## 4c. Busca que perdoa erro de digitação — FEITO
+
+Só entra quando a busca exata volta vazia ou com menos de 8 resultados, sob o
+título "Resultados parecidos" / "Talvez seja".
+
+Duas peças: distância de edição com corte antecipado, e uma redução fonética do
+português antes de comparar (qu=k, c+e/i=s, ch=x, z=s, h mudo, letra dobrada =
+simples). A fonética era necessária: "kerencia" → "querencia" custa 2 edições, e
+afrouxar a tolerância pra 2 fazia "banheiro" casar com "Pinheiro". Pelo som,
+"kerencia" e "querencia" ficam idênticas e "banheiro" e "pinheiro" continuam
+diferentes.
+
+Tolerância proporcional (1 erro até 9 letras, 2 até 14), comparação palavra a
+palavra, e número de lote não tem parecido — senão "161" sugeria 101, 111, 121.
+
+Casos conferidos: kerencia, estansia, bate casko, xurrasqueira, lisiguana e
+tiaraju (que achava só o Playground Sepé Tiaraju e agora oferece o piquete 161
+"Tiarayú"). Custo: 1 a 8 ms por tecla.
+
+---
+
 ## 5. Link direto para um local
 
 Uma URL como `https://cainaogg.github.io/afmapa/?p=139` que já abre no piquete,

@@ -172,6 +172,15 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   cursor:pointer;padding:2px 0 2px 2px;flex:none;}
 .row-fav.on{color:#e8a300;}
 
+/* atalhos "mais perto daqui" */
+.atalhos{display:flex;gap:6px;overflow-x:auto;padding:8px 12px 4px;scrollbar-width:none;}
+.atalhos::-webkit-scrollbar{display:none;}
+.atalho{flex:none;display:flex;align-items:center;gap:5px;border:1px solid var(--line);
+  background:var(--panel);color:var(--ink);border-radius:16px;padding:6px 11px;font-size:12.5px;
+  font-family:'Roboto',sans-serif;cursor:pointer;white-space:nowrap;}
+.atalho:hover{background:var(--ground);}
+.atalho:disabled{opacity:.5;cursor:progress;}
+
 /* menu do hamburguer: tudo que saiu da tela principal entra aqui */
 .menu-list{padding:8px;display:flex;flex-direction:column;}
 .menu-item{display:flex;align-items:center;gap:12px;padding:12px 10px;border:none;background:none;
@@ -261,6 +270,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     </div>
 
     <div class="sheet-page active" id="page-search">
+      <div class="atalhos" id="atalhos"></div>
       <div class="search-results" id="searchResults"></div>
     </div>
 
@@ -594,6 +604,26 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     while(cur!==startId){ cur=prev[cur]; path.unshift(cur); }
     return { path, dist: distMap[endId] };
   }
+  // Dijkstra sem destino: devolve a distância até todos os nós de uma vez. Usado pelos
+  // atalhos "mais perto daqui" — 12 praças de alimentação seriam 12 buscas separadas.
+  function distanciasDe(startId){
+    const distMap = {}, visited = new Set();
+    Object.keys(graph).forEach(k=> distMap[k] = Infinity);
+    distMap[startId] = 0;
+    const pq = [[0,startId]];
+    while(pq.length){
+      pq.sort((a,b)=>a[0]-b[0]);
+      const [d,u] = pq.shift();
+      if(visited.has(u)) continue;
+      visited.add(u);
+      (graph[u]||[]).forEach(e=>{
+        const nd = d + e.w;
+        if(nd < distMap[e.to]){ distMap[e.to] = nd; pq.push([nd, e.to]); }
+      });
+    }
+    return distMap;
+  }
+
   function nodePos(id){
     if(D.roadNodes[id]) return D.roadNodes[id];
     if(viaPos[id]) return viaPos[id];
@@ -1574,6 +1604,71 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     function pick(p){ input.value = displayName(p); sugEl.classList.remove('open'); onPick(p); }
   }
 
+  // ============ busca tolerante a erro de digitação ============
+  // Num balcão a pessoa fala o nome e quem atende digita como ouviu: "kerencia" não
+  // achava nada e "tiaraju" levava ao Playground em vez do piquete 161 "Tiarayú".
+  // Só roda quando a busca normal volta vazia.
+  function distEdicao(a, b, limite){
+    if(Math.abs(a.length - b.length) > limite) return limite+1;
+    let ant = Array.from({length:b.length+1}, (_,i)=>i);
+    for(let i=1;i<=a.length;i++){
+      const atual = [i];
+      let melhorDaLinha = i;
+      for(let j=1;j<=b.length;j++){
+        const custo = a[i-1] === b[j-1] ? 0 : 1;
+        atual[j] = Math.min(ant[j]+1, atual[j-1]+1, ant[j-1]+custo);
+        if(atual[j] < melhorDaLinha) melhorDaLinha = atual[j];
+      }
+      if(melhorDaLinha > limite) return limite+1;   // a linha inteira já estourou
+      ant = atual;
+    }
+    return ant[b.length];
+  }
+  // Reduz a palavra ao som, em portugues: "querencia" e "kerencia" viram a mesma coisa,
+  // mas "banheiro" e "pinheiro" continuam diferentes. Sem isso nao dava pra afrouxar a
+  // tolerancia o bastante pra "kerencia" sem trazer "pinheiro" junto.
+  function fonetica(w){
+    return w
+      .replace(/ph/g,'f').replace(/ch/g,'x')
+      .replace(/lh/g,'L').replace(/nh/g,'N')   // guarda antes de derrubar o h
+      .replace(/h/g,'')
+      .replace(/qu/g,'k').replace(/q/g,'k')
+      .replace(/c([eiy])/g,'s$1').replace(/c/g,'k')
+      .replace(/z/g,'s').replace(/y/g,'i').replace(/w/g,'v')
+      .replace(/(.)+/g,'$1')                 // letra dobrada soa igual a simples
+      .replace(/L/g,'lh').replace(/N/g,'nh');
+  }
+  function palavrasDe(p){
+    return [displayName(p), p.alias||'', (p.tambemChamado||[]).join(' ')]
+      .join(' ').split(/[^0-9A-Za-zÀ-ÿ]+/).map(w=>fonetica(semAcento(w))).filter(w=>w.length > 2);
+  }
+  // Tolerancia proporcional ao tamanho da palavra: 1 erro ate 9 letras, 2 ate 14.
+  // Com folga fixa de 2, "banheiro" casava com "Pinheiro" (b->p, a->i).
+  function limiteDe(palavra){ return Math.max(1, Math.floor(palavra.length * 0.2)); }
+  function parecidos(q){
+    const termos = q.split(/[^0-9A-Za-zÀ-ÿ]+/).map(t=>fonetica(semAcento(t))).filter(t=>t.length >= 3);
+    if(!termos.length) return [];
+    // numero de lote nao tem "parecido": 161 sugeria 101, 111, 121...
+    if(termos.every(t=>/^[0-9]+$/.test(t))) return [];
+    const achados = [];
+    points.forEach(p=>{
+      if(!p._palavras) p._palavras = palavrasDe(p);
+      let soma = 0;
+      const todosBatem = termos.every(t=>{
+        const lim = limiteDe(t);
+        let melhor = lim + 1;
+        p._palavras.forEach(w=>{ const d = distEdicao(t, w, lim); if(d < melhor) melhor = d; });
+        if(melhor > lim) return false;
+        soma += melhor;
+        return true;
+      });
+      // soma 0 acontece quando o som bate exatamente ("kerencia" = "querencia"):
+      // e o melhor caso, nao um descarte. Repetido com a lista exata ja e filtrado fora.
+      if(todosBatem) achados.push({ p, d:soma });
+    });
+    return achados.sort((a,b)=> a.d - b.d).slice(0,20).map(x=>x.p);
+  }
+
   const mainSearch = document.getElementById('mainSearch');
   const mainSug = document.getElementById('mainSug');
   const searchResults = document.getElementById('searchResults');
@@ -1585,10 +1680,25 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     searchResults.innerHTML=''; mainSug.classList.remove('open');
     placeCard.style.display = 'none';
     btnClearSearch.style.display = q ? 'flex' : 'none';
+    document.getElementById('atalhos').hidden = !!q;
     if(!q){ pintaPainelVazio(); return; }
     const found = points.filter(p=>matches(p,q)).slice(0,60);
-    if(found.length===0){ searchResults.innerHTML = '<div class="result-row">Nada encontrado.</div>'; return; }
     found.forEach(p=> searchResults.appendChild(linhaResultado(p)));
+    // Os parecidos entram sempre que a lista exata for curta, nao so quando ela for
+    // vazia: "tiaraju" acha o Playground Sepe Tiaraju por escrito exato, mas quem
+    // digitou provavelmente queria o piquete 161 "Tiarayu".
+    if(found.length < 8){
+      const jaListado = new Set(found);
+      const perto = parecidos(q).filter(p=> !jaListado.has(p));
+      if(perto.length){
+        const cab = document.createElement('div');
+        cab.className = 'fav-head';
+        cab.textContent = found.length ? 'Talvez seja' : 'Resultados parecidos';
+        searchResults.appendChild(cab);
+        perto.forEach(p=> searchResults.appendChild(linhaResultado(p)));
+      }
+    }
+    if(!searchResults.children.length) searchResults.innerHTML = '<div class="result-row">Nada encontrado.</div>';
   });
 
   let selectedPlace = null;
@@ -1781,6 +1891,56 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   }
   document.getElementById('btnProg').addEventListener('click', abrirProg);
   document.getElementById('btnProgClose').addEventListener('click', ()=> progOverlay.style.display='none');
+
+  // ============ atalhos "mais perto daqui" ============
+  // As perguntas que mais chegam no balcão depois de "onde fica o piquete X". A resposta
+  // não é óbvia: são 4 sanitários num parque grande, e os seis serviços (ambulatório,
+  // brigada, bombeiros, polícias, juizado) estão todos juntos na Casa do Gaúcho.
+  const ATALHOS = [
+    { icone:'🚻',  rotulo:'Banheiro',       acha: p => p.tipo === 'Sanitários' },
+    { icone:'🍽️',  rotulo:'Comida',         acha: p => p.tipo === 'Praça de Alimentação' },
+    { icone:'🚑',  rotulo:'Ambulatório',    acha: p => /ambulat/i.test(p.nome) },
+    { icone:'🚓',  rotulo:'Brigada',        acha: p => /brigada|pol[íi]cia|bombeiro/i.test(p.nome) },
+    { icone:'🅿️',  rotulo:'Estacionamento', acha: p => p.cat === 'park' },
+    { icone:'🚪',  rotulo:'Saída',          acha: p => /p[óo]rtico/i.test(p.nome) },
+  ];
+  // De onde é "aqui": a partida fixa, senão o GPS, senão o centro do que está na tela.
+  function origemDoAtalho(){
+    if(partidaFixaLigada()){ const o = pontoPartidaFixa(); if(o) return o; }
+    if(gpsPoint) return gpsPoint;
+    return { x: VB.x + VB.w/2, y: VB.y + VB.h/2, centroDaTela:true };
+  }
+  function maisPerto(filtro){
+    const alvos = points.filter(p=> !p.semLocal && p._nodeId && filtro(p));
+    if(!alvos.length) return null;
+    const origem = origemDoAtalho();
+    let deId = origem._nodeId;
+    if(origem.centroDaTela){
+      deId = 'AQUI_NODE';
+      addNode(deId); graph[deId] = [];
+      ligaNaRua(deId, origem.x, origem.y, 'VIA_AQUI', null);
+    }
+    const distMap = distanciasDe(deId);
+    let melhor = null;
+    alvos.forEach(p=>{
+      const d = distMap[p._nodeId];
+      if(d != null && d < Infinity && (!melhor || d < melhor.d)) melhor = { p, d };
+    });
+    return melhor;
+  }
+  const atalhosEl = document.getElementById('atalhos');
+  ATALHOS.forEach(a=>{
+    const b = document.createElement('button');
+    b.className = 'atalho';
+    b.innerHTML = `<span>${a.icone}</span><span>${a.rotulo}</span>`;
+    b.addEventListener('click', ()=>{
+      const achado = maisPerto(a.acha);
+      if(!achado){ toast('Não encontrei ' + a.rotulo.toLowerCase() + ' no mapa.'); return; }
+      toast(`${a.rotulo} mais perto: ${displayName(achado.p)} · ${Math.round(achado.d * M_POR_UNIDADE)} m`);
+      onMapPick(achado.p);
+    });
+    atalhosEl.appendChild(b);
+  });
 
   // ============ menu ============
   function fecharOverlays(){
