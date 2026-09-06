@@ -24,6 +24,7 @@ Site estatico: nao precisa de servidor, banco de dados nem build.
 | `icons/` | icones recortados do mapa oficial |
 | `mapa/` | arte do mapa oficial em WebP, usada como camada de fundo |
 | `editor.html` | ferramenta interna para calibrar ruas, marcos e icones |
+| `gerar_qr.py` | regera o QR code embutido no site (rode se a URL mudar) |
 
 ## Convencao dos nos de rua (`data.js`)
 
@@ -36,3 +37,11 @@ Site estatico: nao precisa de servidor, banco de dados nem build.
 
 O `editor.html` edita apenas uma copia local no seu navegador. Para publicar
 alteracoes e preciso exportar o JSON e substituir o `data.js` do repositorio.
+
+## QR code
+
+O botao do QR mostra um codigo embutido no proprio `index.html` como SVG, sem
+depender de internet nem de biblioteca externa. Se a URL do site mudar (por
+exemplo ao renomear o repositorio), regere com:
+
+    python3 gerar_qr.py https://cainaogg.github.io/NOVO-NOME/
