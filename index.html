@@ -1465,6 +1465,12 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   // entao a escala tem que ser igual nos dois eixos. O ajuste antigo era afim e saiu com
   // 10% de diferenca entre os eixos, o que fazia o erro crescer com a distancia.
   // Giro -6.08 graus, escala 0.1167 m/unidade, residuo 2.5 m (pior 4.1 m).
+  //
+  // Validacao cruzada (tira um ponto, ajusta com 4, tenta prever o que ficou de fora):
+  // 3.9 m de RMS, pior caso 5.6 m. A incerteza dos parametros e de 0.24% na escala e
+  // 0.11 grau no giro, entao extrapolar ate os cantos do mapa (os pontos de controle
+  // cobrem so o miolo) acrescenta 1.3 m. Nao adianta levantar mais pontos: o chip de
+  // GPS do celular erra de 5 a 15 m, o que domina tudo isso.
   const GPS_FIT = {
     x: [821704.177, -100546.263, 39083567.379],
     y: [-87478.886, -944448.290, -32852461.706],
