@@ -484,16 +484,55 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   Object.keys(D.roadNodes).forEach(addNode);
   D.roadEdges.forEach(([a,b])=> addEdge(a,b, dist(D.roadNodes[a],D.roadNodes[b])));
 
+  // Nós de entrada criados em cima das ruas (ver abaixo). Ficam fora de D.roadNodes.
+  const viaPos = {};      // id -> [x,y]
+  const viaAresta = {};   // id -> [nóA, nóB] da rua onde ele foi criado
+
+  // ponto mais próximo do segmento ab
+  function projeta(p, a, b){
+    const vx = b[0]-a[0], vy = b[1]-a[1];
+    const len2 = vx*vx + vy*vy;
+    if(!len2) return { pt:a.slice(), t:0 };
+    let t = ((p[0]-a[0])*vx + (p[1]-a[1])*vy) / len2;
+    t = Math.max(0, Math.min(1, t));
+    return { pt:[a[0]+t*vx, a[1]+t*vy], t };
+  }
+
+  // Liga um ponto à RUA mais próxima, não ao NÓ mais próximo. O grafo é esparso
+  // (a Rua Hugo da Cunha Alves tem 3 nós em 946 de comprimento), então o nó mais perto
+  // de um lote no meio da quadra costuma estar do OUTRO LADO dela: a ligação atravessava
+  // o lote vizinho e a rota mandava entrar pela rua errada. Era o caso de 69 dos 236
+  // lotes — o 120 entrava pela Hugo da Cunha Alves cortando o 127, quando a porta dele
+  // dá na Oliveira Silveira. A projeção vira um nó novo no meio da aresta, ligado às
+  // duas pontas dela.
+  function ligaNaRua(pid, x, y, vid){
+    let melhor = null;
+    D.roadEdges.forEach(([ia,ib])=>{
+      const a = D.roadNodes[ia], b = D.roadNodes[ib];
+      if(!a || !b) return;
+      const { pt } = projeta([x,y], a, b);
+      const d = dist([x,y], pt);
+      if(!melhor || d < melhor.d) melhor = { d, pt, ia, ib };
+    });
+    if(!melhor) return;
+    // caiu em cima de uma ponta: usa a ponta e não cria nó novo
+    const da = dist(melhor.pt, D.roadNodes[melhor.ia]);
+    const db = dist(melhor.pt, D.roadNodes[melhor.ib]);
+    if(da < 1){ addEdge(pid, melhor.ia, melhor.d); return; }
+    if(db < 1){ addEdge(pid, melhor.ib, melhor.d); return; }
+    graph[vid] = [];                 // religar (GPS) não pode acumular arestas velhas
+    viaPos[vid] = melhor.pt;
+    viaAresta[vid] = [melhor.ia, melhor.ib];
+    addEdge(vid, melhor.ia, da);
+    addEdge(vid, melhor.ib, db);
+    addEdge(pid, vid, melhor.d);
+  }
+
   points.forEach((p,idx)=>{
     const pid = 'PT_'+idx;
     p._nodeId = pid;
     addNode(pid);
-    // liga cada ponto (lote/marco) a só o nó de rua mais próximo — uma única "porta de entrada".
-    // com 2 ligações, o Dijkstra às vezes "atravessava" o lote como atalho entre duas ruas
-    // (mais curto que contornar pela rua de verdade, mas impossível na prática).
-    let best=null,bd=Infinity;
-    Object.entries(D.roadNodes).forEach(([rid,pos])=>{ const d=dist([p.x,p.y],pos); if(d<bd){bd=d;best=rid;} });
-    addEdge(pid, best, bd);
+    ligaNaRua(pid, p.x, p.y, 'VIA_'+idx);
   });
 
   function dijkstra(startId, endId){
@@ -519,6 +558,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   }
   function nodePos(id){
     if(D.roadNodes[id]) return D.roadNodes[id];
+    if(viaPos[id]) return viaPos[id];
     const idx = parseInt(id.replace('PT_',''),10);
     const p = points[idx];
     return [p.x,p.y];
@@ -1059,9 +1099,53 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     if(/^(Rua_sem_nome|Sem_Nome)/i.test(bruto)) return '';
     if(/^(rotula|Pra[cç]a|P[oó]rtico|Casa_do|Estacionamento)/i.test(bruto)) return '';
     // PT_<i> e o no que liga o lote/marco a rua; GPS_NODE e a posicao do aparelho
-    if(/^(PT|GPS)/.test(bruto)) return '';
+    if(/^(PT|GPS|VIA)/.test(bruto)) return '';
     return bruto.replace(/_/g,' ');
   }
+  // O nome do passo vem da ARESTA, não do nó. A Rua Oliveira Silveira, por exemplo,
+  // está no grafo como uma aresta longa entre um nó da Paixão Cortes e um da Barbosa
+  // Lessa: pelo nó, o trecho dela saía com o nome da rua errada.
+  // Ordem: (1) as duas pontas concordam — os nós foram nomeados à mão, mandam eles;
+  // (2) um rótulo de rua paralelo e em cima da aresta; (3) o nó de chegada.
+  const rotulosSeg = D.streetLabels.map(s=>{
+    const a = s.rot * Math.PI/180;
+    return { txt:s.text, a:[s.x, s.y], b:[s.x + Math.cos(a)*s.len, s.y + Math.sin(a)*s.len] };
+  });
+  function anguloEntre(p1,p2,q1,q2){
+    const g = Math.abs(Math.atan2(p2[1]-p1[1], p2[0]-p1[0]) - Math.atan2(q2[1]-q1[1], q2[0]-q1[0]))
+              * 180/Math.PI % 180;
+    return g > 90 ? 180-g : g;
+  }
+  const cacheAresta = {};
+  function nomeDaAresta(x,y){
+    // nó de entrada: quem tem nome é a rua em que ele foi criado
+    const via = viaAresta[x] || viaAresta[y];
+    const ia = via ? via[0] : x, ib = via ? via[1] : y;
+    const chave = ia + '\u0000' + ib;
+    if(chave in cacheAresta) return cacheAresta[chave];
+    const nA = nomeDaRua(ia), nB = nomeDaRua(ib);
+    let nome;
+    if(nA && nA === nB){
+      nome = nA;
+    } else {
+      const a = D.roadNodes[ia], b = D.roadNodes[ib];
+      let rot = null;
+      if(a && b){
+        const meio = [(a[0]+b[0])/2, (a[1]+b[1])/2];
+        rotulosSeg.forEach(r=>{
+          if(anguloEntre(a,b,r.a,r.b) > 20) return;
+          const { pt } = projeta(meio, r.a, r.b);
+          const d = dist(meio, pt);
+          if(d > 60) return;
+          if(!rot || d < rot.d) rot = { d, txt:r.txt };
+        });
+      }
+      nome = rot ? rot.txt : (nB || nA);
+    }
+    cacheAresta[chave] = nome;
+    return nome;
+  }
+
   function giro(a,b){
     // no SVG o y cresce pra baixo, entao produto vetorial positivo = curva pra direita
     const ang = Math.atan2(a[0]*b[1]-a[1]*b[0], a[0]*b[0]+a[1]*b[1]) * 180/Math.PI;
@@ -1074,7 +1158,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     const pts = path.map(nodePos);
     const pernas = [];
     for(let i=0;i<path.length-1;i++){
-      const nome = nomeDaRua(path[i+1]) || nomeDaRua(path[i]);
+      const nome = nomeDaAresta(path[i], path[i+1]);
       const d = Math.hypot(pts[i+1][0]-pts[i][0], pts[i+1][1]-pts[i][1]);
       const ult = pernas[pernas.length-1];
       if(ult && ult.nome===nome){ ult.d += d; ult.fim = pts[i+1]; }
@@ -1192,7 +1276,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     const origem = pontoPartidaFixa();
     if(cfgPartidaFixa.checked){
       if(origem) stops[0] = origem;
-    } else if(stops[0] && stops[0].nome===PARTIDA_FIXA){
+    } else if(stops[0] === pontoPartidaFixa()){
       stops[0] = null;
     }
     renderStops(); renderStopMarkers(); updateTraceBtn();
@@ -1294,10 +1378,8 @@ svg#map.modo-esquematico .esquematico{display:inline;}
       if(!gpsPoint){ toast('Aguardando sinal de GPS…'); return; }
       // liga o ponto GPS na malha viária
       addNode(gpsPoint._nodeId = 'GPS_NODE');
-      let best=null,bd=Infinity;
-      Object.entries(D.roadNodes).forEach(([rid,pos])=>{ const d=dist([gpsPoint.x,gpsPoint.y],pos); if(d<bd){bd=d;best=rid;} });
       graph['GPS_NODE'] = [];
-      addEdge('GPS_NODE', best, bd);
+      ligaNaRua('GPS_NODE', gpsPoint.x, gpsPoint.y, 'VIA_GPS');
       stops[0] = gpsPoint;
       renderStops(); renderStopMarkers(); updateTraceBtn();
       flyTo(gpsPoint.x, gpsPoint.y, 900);
@@ -1414,10 +1496,12 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   const catNiceLabel = { lote:'Piquete', service:'Serviço', public:'Institucional / patrocinador', food:'Alimentação / lazer',
     shop:'Loja / feira', market:'Mercado', agro:'Agricultura familiar', media:'Imprensa', stage:'Palco', park:'Estacionamento' };
   function onMapPick(p){
-    // com partida fixa ligada, escolher um lugar ja vira rota: so o destino e escolhido
-    if(partidaFixaLigada() && p.nome !== PARTIDA_FIXA && !p.semLocal){
-      const origem = pontoPartidaFixa();
-      if(origem){
+    // com partida fixa ligada, escolher um lugar ja vira rota: so o destino e escolhido.
+    // Compara o OBJETO, nao o nome: o lote 139 tambem se chama "Chama Crioula" e, por
+    // nome, era confundido com a origem — clicar nele nao tracava rota nenhuma.
+    const origem = pontoPartidaFixa();
+    if(partidaFixaLigada() && p !== origem && !p.semLocal){
+      {
         stops = [origem, p];
         searchResults.innerHTML = '';
         mainSug.classList.remove('open');
