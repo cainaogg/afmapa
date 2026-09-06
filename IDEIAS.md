@@ -1,6 +1,7 @@
 # Ideias e pendências
 
-Lista do que ficou para depois. Nada aqui está implementado.
+Lista do que ficou para depois. Os itens 2 (menos as praças), 3, 4 e 6 já
+foram feitos — ficam aqui marcados como FEITO, com o que sobrou de cada um.
 Estado do projeto quando esta lista foi escrita: 236 lotes, 93 marcos, 183 nós e
 223 arestas de rua, 31 rótulos, 61 ícones. Site no ar em
 https://cainaogg.github.io/afmapa/
@@ -62,25 +63,40 @@ praças de alimentação, mas não sei em qual.
 
 ## 2. Pedidos seus que ficaram para trás
 
-### Favoritar piquetes
-Você pediu quando montamos a interface estilo Google Maps. A ideia era marcar
-piquetes com estrela e ter uma lista "Salvos", ignorando o histórico de recentes.
-Guardaria no navegador (`localStorage`), sem conta nem servidor.
+### Favoritar piquetes — FEITO
+Estrela no cartão do local. Com a busca vazia, a lista de favoritos aparece no
+lugar dos resultados. Guardado em `localStorage` (`af2026_favoritos`), sem conta
+nem servidor — some se a pessoa limpar os dados do navegador.
 
-### Colapsar/expandir o painel lateral
-Pedido junto com o de cima. Em tela larga o painel ocuparia menos espaço quando
-recolhido, com uma setinha para reabrir.
+### Colapsar/expandir o painel lateral — FEITO
+Botão `⌃` na barra de busca: recolhe tudo menos a própria busca e devolve o mapa
+inteiro. Clicar de novo reabre.
 
-### O que tem em cada Praça de Alimentação
+### O que tem em cada Praça de Alimentação — PENDENTE (depende de você)
 Você disse que precisaria levantar isso. Hoje as 12 praças existem no mapa com
 número, mas sem saber o que tem dentro. Provavelmente resolve boa parte dos 31
 nomes de comércio do item 1.
 
 ---
 
-## 3. Programação do dia dentro do site
+## 3. Programação do dia dentro do site — FEITO
 
-**A que eu mais recomendo.** Os dados já existem: a planilha
+Botão 📅 abre a programação, já no dia de hoje, com a tira de dias para navegar.
+Cada palco tem "ver no mapa", que fecha a lista e vai para o palco (com rota, se
+a partida fixa estiver ligada). No dia corrente, a próxima atração de cada palco
+fica destacada.
+
+Os dados vêm de `programacao.js`, gerado da planilha por `gerar_programacao.py`
+— **rode o script de novo sempre que a planilha mudar**. São 19 dias e 146
+atrações; a linha "05 e 06/09" da planilha virou dois dias, e o dia da semana é
+recalculado da data (a planilha traz 14/09 como "Terça", quando é Segunda).
+
+Só existem dois palcos na planilha: Jayme Caetano Braun e Nico Fagundes. A
+Estância Harmonia que eu tinha suposto não aparece na programação.
+
+O texto original:
+
+Os dados já existem: a planilha
 `Programacao AF 2026.xlsx` (fora do repositório) tem as 144 atrações separadas
 por dia, de 29/08 a 20/09.
 
@@ -94,7 +110,21 @@ O trabalho maior não é a interface: é ligar cada atração ao palco correspon
 
 ---
 
-## 4. Funcionar sem sinal (PWA)
+## 4. Funcionar sem sinal (PWA) — FEITO
+
+`sw.js` + `manifest.webmanifest`. A página em si vai na rede primeiro (assim uma
+publicação nova chega a quem está online) e o resto — dados, mapa, ícones — sai
+do cache. Depois da primeira abertura, funciona sem internet nenhuma, e dá para
+"adicionar à tela de início".
+
+**Ao publicar uma mudança de dados, bump nos dois lugares:** `?v=` na tag do
+`data.js` dentro do `index.html` e `CACHE = 'af2026-vN'` no `sw.js`. Sem isso,
+quem já abriu o site continua vendo a versão velha.
+
+Só funciona em HTTPS — no GitHub Pages sim, abrindo o arquivo direto do
+computador não.
+
+O texto original:
 
 O site tem 2,3 MB no primeiro acesso e o acampamento vai ter 4G congestionado
 com muita gente no mesmo lugar. Com um service worker guardando os arquivos em
@@ -120,9 +150,24 @@ Vale gerar também um QR por local, para imprimir e colar.
 
 ---
 
-## 6. Rota em passos escritos
+## 6. Rota em passos escritos — FEITO
 
-Hoje a rota é uma linha no mapa e a distância total. Como os nós agora carregam
+Depois de traçar, a rota vira um cartão próprio: no celular ele sobe de baixo e
+abre puxando pela alça (como o Google Maps); no desktop fica no canto inferior
+esquerdo com os passos sempre à vista. O ✕ cancela a rota de verdade — apaga a
+linha e os pinos, que antes ficavam na tela.
+
+Os passos saem do nome das ruas nos nós, agrupando trechos seguidos da mesma rua
+e decidindo o lado da curva pelo produto vetorial entre um trecho e o seguinte
+(< 30° = siga em frente, > 150° = retorno). Trecho de menos de 12 m entra no
+anterior, senão a lista vira picadinho.
+
+Onde o mapa oficial não nomeia a rua, o passo sai sem nome ("vire à direita e
+siga 40 m") — são os nós `Rua_sem_nome_*` e `Sem_Nome_*`.
+
+O texto original:
+
+Como os nós agora carregam
 o nome da rua (`Rua_Glaucus_Saraiva_3`), dá para gerar instruções de texto:
 "siga pela Rua Simões Lopes Neto, vire à direita na Glaucus Saraiva, o piquete
 fica à esquerda".

@@ -1,0 +1,17 @@
+{
+  "name": "Mapa do Acampamento Farroupilha 2026",
+  "short_name": "AF 2026",
+  "description": "Mapa interativo do Acampamento Farroupilha 2026: busque o piquete e trace a rota a pé.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f2efe9",
+  "theme_color": "#1a5c3a",
+  "lang": "pt-BR",
+  "icons": [
+    { "src": "pwa/icone-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "pwa/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "pwa/icone-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

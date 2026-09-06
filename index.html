@@ -118,8 +118,6 @@ svg#map.modo-esquematico .esquematico{display:inline;}
 /* Depois de tracar, o painel encolhe pra uma barra de resumo e devolve a tela pro
    mapa (mesma ideia do Google Maps). "Editar" traz o editor de paradas de volta. */
 .rota-resumo{display:none;align-items:center;gap:10px;padding:12px 14px;}
-.sheet.rota-pronta .rota-resumo{display:flex;}
-.sheet.rota-pronta .stops-wrap{display:none;}
 .rota-resumo-txt{flex:1;min-width:0;line-height:1.4;}
 .rota-resumo-txt b{display:block;font-size:15px;color:var(--ink);}
 .rota-resumo-txt span{display:block;font-size:11.5px;color:var(--ink-soft);
@@ -130,9 +128,6 @@ svg#map.modo-esquematico .esquematico{display:inline;}
 .route-info{font-size:12.5px;color:var(--ink-soft);line-height:1.6;padding:0 2px;display:none;}
 .route-info.show{display:block;}
 .route-info b{color:var(--ink);}
-.route-steps{list-style:none;margin:6px 0 0;padding:0;font-size:12px;}
-.route-steps li{padding:3px 0 3px 18px;position:relative;color:var(--ink-soft);}
-.route-steps li::before{content:'';position:absolute;left:2px;top:9px;width:6px;height:6px;border-radius:50%;background:var(--accent);}
 
 .qr-overlay{position:absolute;inset:0;z-index:40;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:16px;}
 .qr-box{width:min(340px,100%);overflow:hidden;}
@@ -171,6 +166,57 @@ svg#map.modo-esquematico .esquematico{display:inline;}
 .toast{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);background:var(--ink);color:var(--ground);padding:9px 16px;border-radius:20px;font-size:12.5px;box-shadow:var(--shadow);z-index:20;opacity:0;pointer-events:none;transition:opacity .25s;}
 .toast.show{opacity:1;}
 
+/* favoritos */
+.place-fav-btn{width:38px;height:38px;border:1px solid var(--line);border-radius:50%;background:var(--panel);
+  color:var(--ink-soft);font-size:19px;line-height:1;cursor:pointer;flex:none;}
+.place-fav-btn.on{color:#e8a300;border-color:#e8a300;}
+.fav-head{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;
+  padding:10px 10px 6px;font-weight:700;}
+.fav-vazio{padding:0 10px 12px;font-size:12.5px;color:var(--ink-soft);line-height:1.5;}
+.result-row .tirar-fav{border:none;background:none;color:var(--ink-soft);cursor:pointer;font-size:15px;flex:none;padding:0 2px;}
+
+/* painel recolhido: some tudo menos a barra de busca, o mapa fica inteiro a vista */
+.sheet.recolhido .sheet-page,.sheet.recolhido .place-card{display:none;}
+#btnRecolher{transition:transform .18s;}
+.sheet.recolhido #btnRecolher{transform:rotate(180deg);}
+
+/* cartao da rota: no celular sobe de baixo e abre puxando pela alca (estilo Google Maps) */
+.rota-card{position:absolute;z-index:7;left:10px;bottom:10px;width:320px;display:flex;flex-direction:column;
+  overflow:hidden;max-height:calc(100dvh - 20px);}
+.rota-alca{display:none;}
+.rota-topo{display:flex;align-items:center;gap:8px;padding:12px 8px 12px 14px;flex:none;}
+.rota-passos{display:none;margin:0;padding:0 14px 14px 14px;list-style:none;overflow:auto;
+  border-top:1px solid var(--line);padding-top:10px;}
+.rota-card.aberta .rota-passos{display:block;}
+.rota-passos li{display:flex;gap:10px;padding:8px 0;font-size:13px;line-height:1.45;border-bottom:1px solid var(--line);}
+.rota-passos li:last-child{border-bottom:none;}
+.rota-passos .ico{flex:none;width:22px;text-align:center;font-size:15px;color:var(--accent);}
+.rota-passos .dist{color:var(--ink-soft);font-size:11.5px;}
+@media (min-width: 721px){ .rota-passos{display:block;} }
+@media (max-width: 720px){
+  .rota-card{left:0;right:0;bottom:0;width:auto;border-radius:16px 16px 0 0;max-height:78dvh;}
+  .rota-alca{display:block;padding:8px 0 2px;cursor:grab;touch-action:none;flex:none;}
+  .rota-alca span{display:block;width:38px;height:4px;border-radius:2px;background:var(--line);margin:0 auto;}
+  .rota-passos{max-height:calc(78dvh - 90px);}
+  /* com o cartao da rota embaixo, os botoes sobem pra continuar alcancaveis */
+  body.com-rota .fab-col{bottom:104px;}
+}
+
+/* programacao */
+.prog-dias{display:flex;gap:6px;overflow-x:auto;padding:10px 12px;border-bottom:1px solid var(--line);flex:none;}
+.prog-dia{flex:none;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:16px;
+  padding:6px 11px;font-size:12px;cursor:pointer;white-space:nowrap;line-height:1.3;text-align:center;}
+.prog-dia b{display:block;font-size:13px;}
+.prog-dia.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
+.prog-lista{padding:6px 12px 14px;overflow:auto;}
+.prog-palco{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);
+  font-weight:700;margin:12px 0 4px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.prog-ir{border:none;background:none;color:var(--accent);font-weight:700;font-size:11.5px;cursor:pointer;
+  text-transform:none;letter-spacing:0;}
+.prog-item{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13px;line-height:1.4;}
+.prog-item .h{flex:none;width:64px;font-family:'Roboto Mono',monospace;font-size:11.5px;color:var(--ink-soft);padding-top:1px;}
+.prog-item.agora{background:rgba(26,92,58,.09);border-radius:6px;padding-left:6px;margin-left:-6px;}
+
 /* --- map drawing --- */
 .road-casing{fill:none;stroke:var(--road-casing);stroke-linecap:round;stroke-linejoin:round;}
 .road-fill{fill:none;stroke:var(--road-fill);stroke-linecap:round;stroke-linejoin:round;}
@@ -205,6 +251,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
         <div class="suggestions" id="mainSug"></div>
       </div>
       <button class="icon-btn gbar-side" id="btnClearSearch" title="Limpar" style="display:none;">✕</button>
+      <button class="icon-btn gbar-side" id="btnRecolher" title="Esconder o painel">⌃</button>
     </div>
 
     <div class="sheet-page active" id="page-search">
@@ -216,6 +263,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
       <div class="place-card-title" id="placeTitle"></div>
       <div class="place-card-actions">
         <button class="place-directions-btn" id="btnPlaceDirections">🧭 Rotas</button>
+        <button class="place-fav-btn" id="btnPlaceFav" title="Favoritar">☆</button>
       </div>
       <div class="place-aviso" id="placeAviso" style="display:none;">
         Este estabelecimento aparece na listagem do evento, mas o mapa oficial não
@@ -231,14 +279,22 @@ svg#map.modo-esquematico .esquematico{display:inline;}
         <button class="trace-btn" id="btnTrace" disabled>Traçar rota</button>
         <div class="route-info" id="routeInfo"></div>
       </div>
-      <div class="rota-resumo" id="rotaResumo">
-        <div class="rota-resumo-txt">
-          <b id="resumoDist"></b>
-          <span id="resumoTrajeto"></span>
-        </div>
-        <button class="rota-editar" id="btnEditarRota">Editar</button>
-      </div>
     </div>
+  </div>
+
+  <!-- Depois de tracar, a rota vira um cartao proprio: no celular ele sobe de baixo e
+       abre puxando pela alca, e a barra de busca continua livre no topo. -->
+  <div class="hud panel rota-card" id="rotaCard" style="display:none;">
+    <div class="rota-alca" id="rotaAlca"><span></span></div>
+    <div class="rota-topo">
+      <div class="rota-resumo-txt">
+        <b id="resumoDist"></b>
+        <span id="resumoTrajeto"></span>
+      </div>
+      <button class="rota-editar" id="btnEditarRota">Editar</button>
+      <button class="icon-btn" id="btnFecharRota" title="Cancelar a rota">✕</button>
+    </div>
+    <ol class="rota-passos" id="rotaPassos"></ol>
   </div>
 
   <div class="hud panel legend-overlay" id="legendOverlay" style="display:none;">
@@ -261,6 +317,15 @@ svg#map.modo-esquematico .esquematico{display:inline;}
         <button class="trace-btn" id="btnQrCopiar">Copiar endereço</button>
       </div>
     </div>
+  </div>
+
+  <div class="hud panel legend-overlay" id="progOverlay" style="display:none;">
+    <div class="legend-overlay-head">
+      <span>Programação</span>
+      <button class="icon-btn" id="btnProgClose">✕</button>
+    </div>
+    <div class="prog-dias" id="progDias"></div>
+    <div class="prog-lista" id="progLista"></div>
   </div>
 
   <div class="hud panel legend-overlay" id="configOverlay" style="display:none;">
@@ -298,6 +363,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   </div>
 
   <div class="fab-col hud">
+    <button class="gps-fab" id="btnProg" title="Programação do dia">📅</button>
     <button class="gps-fab" id="btnQr" title="Mostrar QR code do site">🔳</button>
     <button class="gps-fab" id="btnConfig" title="Configurações">⚙️</button>
     <button class="gps-fab" id="btnBase" title="Alternar entre o mapa oficial e o esquemático">🗺️</button>
@@ -313,7 +379,11 @@ svg#map.modo-esquematico .esquematico{display:inline;}
 
 <!-- ?v=N: sem isso o navegador serve o data.js velho do cache e os lugares voltam pro lugar errado.
      BUMPAR ESSE NUMERO SEMPRE QUE MEXER NO data.js. -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/chama_crioula.png">
+<link rel="apple-touch-icon" href="icons/chama_crioula.png">
 <script src="data.js?v=3"></script>
+<script src="programacao.js?v=1"></script>
 <script>
 (function(){
   "use strict";
@@ -766,7 +836,6 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   function showTab(tab){
     currentTab = tab;
     sheet.classList.remove('collapsed');
-    if(tab !== 'route') sheet.classList.remove('rota-pronta');
     document.querySelectorAll('.sheet-page').forEach(p=>p.classList.toggle('active', p.id==='page-'+tab));
     placeCard.style.display = 'none';
     btnBack.textContent = tab==='search' ? '☰' : '←';
@@ -774,12 +843,16 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     btnClearSearch.style.display = tab==='search' && mainSearch.value ? 'flex' : 'none';
   }
   btnBack.addEventListener('click', ()=>{
-    if(currentTab==='search') legendOverlay.style.display = legendOverlay.style.display==='none' ? 'block' : 'none';
-    else showTab('search');
+    if(currentTab==='search'){ legendOverlay.style.display = legendOverlay.style.display==='none' ? 'block' : 'none'; }
+    else { limparRota(); showTab('search'); }   // voltar cancela a rota, nao so esconde o painel
+  });
+  document.getElementById('btnRecolher').addEventListener('click', ()=>{
+    sheet.classList.toggle('recolhido');
   });
   document.getElementById('btnLegendClose').addEventListener('click', ()=> legendOverlay.style.display='none');
   btnClearSearch.addEventListener('click', ()=>{
     mainSearch.value=''; mainSearch.dispatchEvent(new Event('input')); mainSearch.focus();
+    limparRota();
   });
 
   // ============ legenda ============
@@ -930,7 +1003,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
       const r = dijkstra(filled[i]._nodeId, filled[i+1]._nodeId);
       if(!r){ ok=false; break; }
       totalDist += r.dist;
-      segInfo.push({from:filled[i], to:filled[i+1], dist:r.dist});
+      segInfo.push({from:filled[i], to:filled[i+1], dist:r.dist, path:r.path});
       const segPts = r.path.map(nodePos);
       fullPath = fullPath.concat(i===0?segPts:segPts.slice(1));
     }
@@ -949,10 +1022,8 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     rotaTracada = true;
     const meters = Math.round(totalDist * 0.1124);
     const minutes = Math.max(1, Math.round(meters/80)); // ~4.8km/h caminhando
-    encolherRota(filled, meters, minutes);
-    let stepsHtml = segInfo.map(s=> `<li>${displayName(s.from)} → ${displayName(s.to)}</li>`).join('');
-    info.classList.add('show');
-    info.innerHTML = `<b>${meters} m</b> · ~${minutes} min a pé<ul class="route-steps">${stepsHtml}</ul>`;
+    info.classList.remove('show');   // o detalhe agora vive no cartao da rota
+    encolherRota(filled, meters, minutes, segInfo);
     // enquadra a rota.
     // Numa tela alta, uma rota larga obriga a sobrar margem: o viewBox acompanha a
     // proporcao da tela, entao esticar na horizontal estica junto na vertical. Da pra
@@ -975,15 +1046,108 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   }
   document.getElementById('btnTrace').addEventListener('click', tracarRota);
 
-  // ---- painel compacto depois de tracar (o mapa fica com quase toda a tela) ----
-  function encolherRota(paradas, metros, minutos){
+  // ============ passos escritos da rota ============
+  // Os nos de rua carregam o nome da rua no proprio id (Rua_Barbosa_Lessa_1), entao da
+  // pra dizer por qual rua a pessoa anda e pra que lado ela vira em cada esquina.
+  const M_POR_UNIDADE = 0.1124;
+  function nomeDaRua(id){
+    const bruto = String(id).replace(/_\d+(_\d+)?$/,'');
+    // "rua sem nome" e o que o mapa oficial nao nomeia; praca/portico/estacionamento
+    // sao lugares, nao vias — nos dois casos nao da pra dizer "vire na rua tal"
+    if(/^(Rua_sem_nome|Sem_Nome)/i.test(bruto)) return '';
+    if(/^(rotula|Pra[cç]a|P[oó]rtico|Casa_do|Estacionamento)/i.test(bruto)) return '';
+    // PT_<i> e o no que liga o lote/marco a rua; GPS_NODE e a posicao do aparelho
+    if(/^(PT|GPS)/.test(bruto)) return '';
+    return bruto.replace(/_/g,' ');
+  }
+  function giro(a,b){
+    // no SVG o y cresce pra baixo, entao produto vetorial positivo = curva pra direita
+    const ang = Math.atan2(a[0]*b[1]-a[1]*b[0], a[0]*b[0]+a[1]*b[1]) * 180/Math.PI;
+    if(Math.abs(ang) < 30)  return { ico:'↑', txt:'Siga em frente', prep:'pela' };
+    if(Math.abs(ang) > 150) return { ico:'↰', txt:'Faça o retorno', prep:'na' };
+    return ang > 0 ? { ico:'↱', txt:'Vire à direita', prep:'na' }
+                   : { ico:'↰', txt:'Vire à esquerda', prep:'na' };
+  }
+  function passosDoTrecho(path, destino){
+    const pts = path.map(nodePos);
+    const pernas = [];
+    for(let i=0;i<path.length-1;i++){
+      const nome = nomeDaRua(path[i+1]) || nomeDaRua(path[i]);
+      const d = Math.hypot(pts[i+1][0]-pts[i][0], pts[i+1][1]-pts[i][1]);
+      const ult = pernas[pernas.length-1];
+      if(ult && ult.nome===nome){ ult.d += d; ult.fim = pts[i+1]; }
+      else pernas.push({ nome, d, ini:pts[i], fim:pts[i+1] });
+    }
+    // desvio de poucos metros so polui a lista: entra na perna anterior
+    for(let i=pernas.length-1;i>0;i--){
+      if(pernas[i].d * M_POR_UNIDADE < 12){
+        pernas[i-1].d += pernas[i].d; pernas[i-1].fim = pernas[i].fim; pernas.splice(i,1);
+      }
+    }
+    const passos = pernas.map((perna,i)=>{
+      const m = Math.round(perna.d * M_POR_UNIDADE);
+      if(i===0) return { ico:'↑', txt: perna.nome ? `Siga pela ${perna.nome}` : 'Siga pelo caminho à frente', m };
+      const ant = pernas[i-1];
+      const g = giro([ant.fim[0]-ant.ini[0], ant.fim[1]-ant.ini[1]],
+                     [perna.fim[0]-perna.ini[0], perna.fim[1]-perna.ini[1]]);
+      return { ico:g.ico, txt: perna.nome ? `${g.txt} ${g.prep} ${perna.nome}` : g.txt, m };
+    });
+    passos.push({ ico:'📍', txt:`Chegou em ${displayName(destino)}`, m:null });
+    return passos;
+  }
+  function renderPassos(segInfo){
+    const ol = document.getElementById('rotaPassos');
+    ol.innerHTML = '';
+    segInfo.forEach(seg=> passosDoTrecho(seg.path, seg.to).forEach(pa=>{
+      const li = document.createElement('li');
+      li.innerHTML = `<span class="ico">${pa.ico}</span><span>${pa.txt}` +
+        (pa.m!=null ? ` <span class="dist">· ${pa.m} m</span>` : '') + `</span>`;
+      ol.appendChild(li);
+    }));
+  }
+
+  // ---- cartao da rota (no celular sobe de baixo e abre puxando pela alca) ----
+  const rotaCard = document.getElementById('rotaCard');
+  function encolherRota(paradas, metros, minutos, segInfo){
     document.getElementById('resumoDist').textContent = `${metros} m · ~${minutos} min a pé`;
     document.getElementById('resumoTrajeto').textContent =
       paradas.map(displayName).join('  →  ');
-    sheet.classList.add('rota-pronta');
+    renderPassos(segInfo);
+    rotaCard.style.display = 'flex';
+    document.body.classList.add('com-rota');
+    showTab('search');            // devolve a busca livre no topo, como no Google Maps
+    searchResults.innerHTML = '';
   }
-  function expandirRota(){ sheet.classList.remove('rota-pronta'); }
+  function expandirRota(){ rotaCard.style.display='none'; document.body.classList.remove('com-rota'); showTab('route'); }
   document.getElementById('btnEditarRota').addEventListener('click', expandirRota);
+
+  // cancelar a rota tem que apagar a linha e os pinos, nao so fechar o painel
+  function limparRota(){
+    routeLine.classList.remove('show');
+    routeLine.setAttribute('points','');
+    rotaTracada = false;
+    rotaCard.style.display = 'none';
+    rotaCard.classList.remove('aberta');
+    document.body.classList.remove('com-rota');
+    document.getElementById('routeInfo').classList.remove('show');
+    stops = [null, null];
+    if(cfgPartidaFixa.checked) aplicaPartidaFixa();
+    renderStops(); renderStopMarkers(); updateTraceBtn();
+  }
+  document.getElementById('btnFecharRota').addEventListener('click', ()=>{ limparRota(); showTab('search'); });
+
+  const rotaAlca = document.getElementById('rotaAlca');
+  let puxada = null;
+  rotaAlca.addEventListener('pointerdown', (ev)=>{ puxada = ev.clientY; rotaAlca.setPointerCapture(ev.pointerId); });
+  const soltarAlca = (ev)=>{
+    if(puxada==null) return;
+    const dy = ev.clientY - puxada; puxada = null;
+    if(dy < -25)      rotaCard.classList.add('aberta');
+    else if(dy > 25)  rotaCard.classList.remove('aberta');
+    else              rotaCard.classList.toggle('aberta');   // toque simples tambem abre
+  };
+  rotaAlca.addEventListener('pointerup', soltarAlca);
+  rotaAlca.addEventListener('pointercancel', ()=>{ puxada = null; });
 
   function pararGps(){
     if(gpsWatchId!=null){ navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId=null; }
@@ -999,6 +1163,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     qrOverlay.style.display = 'flex';
     legendOverlay.style.display = 'none';
     configOverlay.style.display = 'none';
+    document.getElementById('progOverlay').style.display = 'none';
   }
   document.getElementById('btnQr').addEventListener('click', abrirQr);
   document.getElementById('btnQrClose').addEventListener('click', ()=> qrOverlay.style.display='none');
@@ -1051,6 +1216,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   aplicaGps();
 
   document.getElementById('btnConfig').addEventListener('click', ()=>{
+    document.getElementById('progOverlay').style.display = 'none';
     configOverlay.style.display = configOverlay.style.display==='none' ? 'block' : 'none';
   });
   document.getElementById('btnConfigClose').addEventListener('click', ()=> configOverlay.style.display='none');
@@ -1226,7 +1392,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     searchResults.innerHTML=''; mainSug.classList.remove('open');
     placeCard.style.display = 'none';
     btnClearSearch.style.display = q ? 'flex' : 'none';
-    if(!q) return;
+    if(!q){ renderFavoritos(); return; }
     const found = points.filter(p=>matches(p,q)).slice(0,60);
     if(found.length===0){ searchResults.innerHTML = '<div class="result-row">Nada encontrado.</div>'; return; }
     found.forEach(p=>{
@@ -1262,6 +1428,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     const semLocal = !!p.semLocal;
     document.getElementById('btnPlaceDirections').style.display = semLocal ? 'none' : '';
     document.getElementById('placeAviso').style.display = semLocal ? 'block' : 'none';
+    pintaFav(p);
     placeCard.style.display = 'block';
     searchResults.innerHTML = '';
     mainSug.classList.remove('open');
@@ -1275,9 +1442,142 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     renderStops(); renderStopMarkers(); updateTraceBtn();
   });
 
+  // ============ favoritos ============
+  // Guardados no proprio aparelho: quem trabalha no balcao repete os mesmos lugares
+  // o dia inteiro, e o visitante marca pra onde vai voltar.
+  const FAV_KEY = 'af2026_favoritos';
+  function idDe(p){ return p.kind+'|'+(p.num||'')+'|'+p.nome; }
+  function lerFavs(){ try{ return JSON.parse(localStorage.getItem(FAV_KEY)||'[]'); }catch(e){ return []; } }
+  function gravarFavs(v){ try{ localStorage.setItem(FAV_KEY, JSON.stringify(v)); }catch(e){} }
+  function ehFav(p){ return lerFavs().indexOf(idDe(p)) >= 0; }
+  function alternarFav(p){
+    const favs = lerFavs(), id = idDe(p), i = favs.indexOf(id);
+    if(i>=0) favs.splice(i,1); else favs.push(id);
+    gravarFavs(favs);
+    return i < 0;
+  }
+  const btnPlaceFav = document.getElementById('btnPlaceFav');
+  function pintaFav(p){
+    const on = ehFav(p);
+    btnPlaceFav.textContent = on ? '★' : '☆';
+    btnPlaceFav.classList.toggle('on', on);
+    btnPlaceFav.title = on ? 'Remover dos favoritos' : 'Favoritar';
+  }
+  btnPlaceFav.addEventListener('click', ()=>{
+    if(!selectedPlace) return;
+    const virouFav = alternarFav(selectedPlace);
+    pintaFav(selectedPlace);
+    toast(virouFav ? 'Salvo nos favoritos.' : 'Removido dos favoritos.');
+  });
+  function renderFavoritos(){
+    const achados = lerFavs().map(id => points.find(p => idDe(p)===id)).filter(Boolean);
+    searchResults.innerHTML = '<div class="fav-head">Favoritos</div>';
+    if(!achados.length){
+      searchResults.innerHTML += '<div class="fav-vazio">Abra um lugar e toque na estrela ' +
+        'para ele ficar salvo aqui.</div>';
+      return;
+    }
+    achados.forEach(p=>{
+      const row = document.createElement('div'); row.className='result-row';
+      row.innerHTML = `<span>${p.num?`<b>${p.num}</b> — `:''}${p.tipo?p.tipo+' ':''}${p.nome}</span>`;
+      const tirar = document.createElement('button');
+      tirar.className='tirar-fav'; tirar.textContent='★'; tirar.title='Remover dos favoritos';
+      tirar.addEventListener('click', (ev)=>{ ev.stopPropagation(); alternarFav(p); renderFavoritos(); });
+      row.appendChild(tirar);
+      row.addEventListener('click', ()=> onMapPick(p));
+      searchResults.appendChild(row);
+    });
+  }
+
+  // ============ programacao ============
+  // Gerada da planilha oficial (gerar_programacao.py). "Que horas toca fulano" e "o que
+  // tem hoje" sao as perguntas que mais chegam no balcao depois de "onde fica".
+  const progOverlay = document.getElementById('progOverlay');
+  const PROG = (window.AF_PROG && window.AF_PROG.dias) || [];
+  let progDiaSel = 0;
+  function hojeDDMM(){
+    const d = new Date();
+    return String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0');
+  }
+  function minutosDe(hora){
+    const m = /^(\d{1,2})h(\d{2})?/.exec(hora||'');
+    return m ? parseInt(m[1],10)*60 + parseInt(m[2]||'0',10) : null;
+  }
+  function pontoDoPalco(palco){
+    return points.find(p => p.kind==='poi' && p.nome === 'Palco ' + palco);
+  }
+  function renderProgDias(){
+    const tira = document.getElementById('progDias');
+    tira.innerHTML = '';
+    PROG.forEach((d,i)=>{
+      const b = document.createElement('button');
+      b.className = 'prog-dia' + (i===progDiaSel ? ' on' : '');
+      b.innerHTML = `<b>${d.data}</b>${d.semana}`;
+      b.addEventListener('click', ()=>{ progDiaSel = i; renderProgDias(); renderProgLista(); });
+      tira.appendChild(b);
+    });
+    const ativo = tira.children[progDiaSel];
+    if(ativo) ativo.scrollIntoView({block:'nearest', inline:'center'});
+  }
+  function renderProgLista(){
+    const alvo = document.getElementById('progLista');
+    const dia = PROG[progDiaSel];
+    alvo.innerHTML = '';
+    if(!dia) return;
+    const ehHoje = dia.data === hojeDDMM();
+    const agora = new Date().getHours()*60 + new Date().getMinutes();
+    const palcos = [];
+    dia.itens.forEach(it=>{ if(palcos.indexOf(it.palco)<0) palcos.push(it.palco); });
+    palcos.forEach(palco=>{
+      const cab = document.createElement('div'); cab.className='prog-palco';
+      cab.innerHTML = `<span>Palco ${palco}</span>`;
+      const ponto = pontoDoPalco(palco);
+      if(ponto){
+        const ir = document.createElement('button');
+        ir.className='prog-ir'; ir.textContent='ver no mapa';
+        ir.addEventListener('click', ()=>{ progOverlay.style.display='none'; onMapPick(ponto); });
+        cab.appendChild(ir);
+      }
+      alvo.appendChild(cab);
+      const doPalco = dia.itens.filter(i=>i.palco===palco);
+      // no dia de hoje, destaca o proximo que ainda vai comecar
+      let proximo = -1;
+      if(ehHoje){
+        proximo = doPalco.findIndex(i=>{ const m = minutosDe(i.hora); return m!=null && m >= agora; });
+      }
+      doPalco.forEach((it,i)=>{
+        const li = document.createElement('div');
+        li.className = 'prog-item' + (i===proximo ? ' agora' : '');
+        li.innerHTML = `<span class="h">${it.hora || '—'}</span><span>${it.atracao}</span>`;
+        alvo.appendChild(li);
+      });
+    });
+  }
+  function abrirProg(){
+    const i = PROG.findIndex(d=>d.data === hojeDDMM());
+    progDiaSel = i >= 0 ? i : progDiaSel;
+    renderProgDias(); renderProgLista();
+    progOverlay.style.display = 'block';
+    legendOverlay.style.display = 'none';
+    configOverlay.style.display = 'none';
+    qrOverlay.style.display = 'none';
+  }
+  document.getElementById('btnProg').addEventListener('click', abrirProg);
+  document.getElementById('btnProgClose').addEventListener('click', ()=> progOverlay.style.display='none');
+
+  // ============ funcionar sem sinal ============
+  // O sinal no parque cai o tempo todo. O service worker guarda mapa e dados no
+  // aparelho; so roda em https (ou localhost), entao no file:// simplesmente nao entra.
+  if('serviceWorker' in navigator && location.protocol === 'https:'){
+    window.addEventListener('load', ()=>{
+      navigator.serviceWorker.register('sw.js').catch(()=>{});
+    });
+  }
+
   // primeira renderização
   if(cfgPartidaFixa.checked) aplicaPartidaFixa();
   renderStopMarkers();
+  renderFavoritos();
 })();
 </script>
 </body>
