@@ -782,7 +782,22 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   // ============ pan & zoom ============
   const VB0 = {x:100,y:800,w:6100,h:2350};
   const VB = {...VB0};
-  function applyVB(){ svg.setAttribute('viewBox', `${VB.x} ${VB.y} ${VB.w} ${VB.h}`); }
+  // Area realmente desenhada, calculada dos cantos da arte oficial do PDF passados pela
+  // mesma matriz que posiciona a imagem. Arrastando, o mapa saia pro vazio e sobrava
+  // tela preta; agora a vista para na borda.
+  const LIMITES = {x:136, y:698, w:5887, h:2446};
+  function prendeNosLimites(){
+    // cabe na largura -> nao deixa passar da borda; nao cabe -> centraliza
+    if(VB.w <= LIMITES.w) VB.x = Math.min(Math.max(VB.x, LIMITES.x), LIMITES.x + LIMITES.w - VB.w);
+    else                  VB.x = LIMITES.x + LIMITES.w/2 - VB.w/2;
+    if(VB.h <= LIMITES.h) VB.y = Math.min(Math.max(VB.y, LIMITES.y), LIMITES.y + LIMITES.h - VB.h);
+    else                  VB.y = LIMITES.y + LIMITES.h/2 - VB.h/2;
+  }
+  // unico ponto por onde todo arrasto, zoom e voo passam: prender aqui cobre todos
+  function applyVB(){
+    prendeNosLimites();
+    svg.setAttribute('viewBox', `${VB.x} ${VB.y} ${VB.w} ${VB.h}`);
+  }
 
   // O mapa e muito largo (2,6:1) e a tela do celular e alta (1:2,2). Com um viewBox fixo,
   // "meet" encolhia tudo pra caber na largura e sobrava tela vazia em cima e embaixo.
@@ -831,10 +846,12 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   // Limites de zoom em funcao da tela: afastar para quando o mapa inteiro couber
   // (antes ia ate 7000 de largura e o mapa sumia no meio do vazio).
   function limitesZoom(){
+    // Afasta ate o mapa inteiro caber, e nem um pouco alem. Numa tela alta isso sozinho
+    // deixaria o mapa ocupando 19% da altura (o mapa e 2,4:1, o celular em pe e 1:2,2),
+    // entao ali o limite e o dobro da altura do mapa: da pra ver bem mais do parque sem
+    // a tela virar quase so fundo.
     const p = telaProp();
-    let w = VB0.w, h = w * p;
-    if(h < VB0.h){ h = VB0.h; w = h / p; }
-    return { min: 300, max: w * 1.02 };
+    return { min: 300, max: Math.min(LIMITES.w, (LIMITES.h / p) * 2) };
   }
   const limitar = w => { const L = limitesZoom(); return Math.max(L.min, Math.min(L.max, w)); };
 
@@ -1133,14 +1150,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     VB.w = Math.max(x1-x0, 300); VB.h = VB.w*prop;
     if(VB.h < (y1-y0)){ VB.h = y1-y0; VB.w = VB.h/prop; }
     VB.x = (x0+x1)/2 - VB.w/2; VB.y = (y0+y1)/2 - VB.h/2;
-    // se couber dentro do mapa, encosta a vista na area desenhada em vez de
-    // deixar metade da sobra fora dele
-    const MAPA = {x:0, y:698, w:6015, h:2434};
-    if(VB.w <= MAPA.w) VB.x = Math.min(Math.max(VB.x, MAPA.x), MAPA.x + MAPA.w - VB.w);
-    else               VB.x = MAPA.x + MAPA.w/2 - VB.w/2;
-    if(VB.h <= MAPA.h) VB.y = Math.min(Math.max(VB.y, MAPA.y), MAPA.y + MAPA.h - VB.h);
-    else               VB.y = MAPA.y + MAPA.h/2 - VB.h/2;
-    applyVB();
+    applyVB();   // prendeNosLimites() encosta a vista na area desenhada
   }
   document.getElementById('btnTrace').addEventListener('click', tracarRota);
 
