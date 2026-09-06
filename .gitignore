@@ -1,0 +1,8 @@
+# arquivos de trabalho, nao fazem parte do site publicado
+_*.png
+_*.webp
+_*.json
+_*.js
+_tiles/
+_ov/
+node_modules/

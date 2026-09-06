@@ -1,0 +1,906 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Editor de ruas e marcos — Acampamento Farroupilha</title>
+<style>
+  :root{
+    --bg:#f2efe9; --panel:#fff; --ink:#1f2225; --ink-soft:#5f6368; --line:#dcdcdc;
+    --accent:#1a73e8; --node:#1a73e8; --edge:#8a94a6; --lot:#dddddd; --lot-text:#9a9a9a;
+    --danger:#d64545;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  .app{display:grid;grid-template-columns:340px 1fr;height:100vh;}
+  aside{border-right:1px solid var(--line);overflow:auto;padding:14px;display:flex;flex-direction:column;gap:14px;background:var(--panel);}
+  aside h1{font-size:17px;margin:0 0 2px;}
+  aside .sub{font-size:11.5px;color:var(--ink-soft);margin-bottom:6px;}
+  section{border:1px solid var(--line);border-radius:8px;padding:10px 12px;}
+  section h2{font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);margin:0 0 8px;}
+  .modes{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+  .modes button{padding:8px 6px;border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;font-size:12.5px;}
+  .modes button.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+  .hint{font-size:11.5px;color:var(--ink-soft);line-height:1.5;margin-top:8px;}
+  select,input[type=text]{width:100%;padding:7px 8px;border:1px solid var(--line);border-radius:6px;font-size:13px;background:#fff;color:var(--ink);}
+  .row{display:flex;justify-content:space-between;align-items:center;gap:6px;font-size:12px;padding:5px 2px;border-bottom:1px solid var(--line);}
+  .row button{border:none;background:none;color:var(--danger);cursor:pointer;font-size:15px;line-height:1;}
+  .listwrap{max-height:150px;overflow:auto;}
+  textarea{width:100%;height:160px;font-family:monospace;font-size:11px;border:1px solid var(--line);border-radius:6px;padding:8px;}
+  .btnrow{display:flex;gap:8px;margin-top:8px;}
+  .btnrow button{flex:1;padding:8px;border:1px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;font-size:12.5px;}
+  .btnrow button.primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+  main{position:relative;overflow:hidden;}
+  svg{width:100%;height:100%;display:block;background:var(--bg);cursor:default;}
+  svg.pan{cursor:grab;}
+  .lot{fill:#fff;stroke:var(--lot);stroke-width:1;}
+  .lot.selected{fill:#fff3e0;stroke:#e8710a;stroke-width:3;}
+  .rubberband{fill:rgba(26,115,232,.12);stroke:#1a73e8;stroke-width:1.5;stroke-dasharray:5 4;}
+  .lot-num{font-size:8px;fill:var(--lot-text);text-anchor:middle;pointer-events:none;font-family:monospace;}
+  .rnode{fill:var(--node);stroke:#fff;stroke-width:2;cursor:pointer;}
+  .rnode-label{font-size:11px;fill:var(--node);pointer-events:none;font-weight:bold;}
+  .redge{stroke:var(--edge);stroke-width:6;stroke-linecap:round;cursor:pointer;}
+  .redge:hover{stroke:#556;}
+  .landmark{cursor:pointer;stroke:#000;stroke-width:1.5;}
+  .landmark-label{font-size:11px;fill:#222;font-weight:bold;pointer-events:none;}
+  .gate{fill:#e8a33d;stroke:#fff;stroke-width:2;cursor:pointer;}
+  .zoom-ctrl{position:absolute;right:14px;bottom:14px;display:flex;flex-direction:column;box-shadow:0 2px 8px rgba(0,0,0,.2);border-radius:6px;overflow:hidden;}
+  .zoom-ctrl button{width:34px;height:34px;border:none;background:#fff;font-size:17px;cursor:pointer;border-bottom:1px solid var(--line);}
+  .toast{position:absolute;left:14px;top:14px;background:#222;color:#fff;padding:8px 14px;border-radius:6px;font-size:12.5px;opacity:0;transition:opacity .3s;pointer-events:none;}
+  .toast.show{opacity:.92;}
+  .icon-picker{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:99;display:none;align-items:center;justify-content:center;}
+  .icon-picker.open{display:flex;}
+  .icon-picker-box{background:#fff;border-radius:10px;width:min(760px,92vw);max-height:82vh;display:flex;flex-direction:column;overflow:hidden;}
+  .icon-picker-head{display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid var(--line);font-size:13px;}
+  .icon-picker-head b{flex:1;}
+  .icon-picker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;padding:12px;overflow:auto;}
+  .icon-opt{border:1px solid var(--line);border-radius:8px;padding:6px;cursor:pointer;background:#fff;text-align:center;}
+  .icon-opt:hover{border-color:#5b8def;background:#f2f6ff;}
+  .icon-opt.sel{border-color:#5b8def;border-width:2px;}
+  .icon-opt img{width:100%;display:block;}
+  .icon-opt span{display:block;font-size:9px;color:#666;margin-top:3px;word-break:break-word;line-height:1.15;}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div>
+      <h1>Editor de ruas e marcos</h1>
+      <div class="sub">Os lotes vêm com a posição do mapa oficial 2026, mas podem ser movidos/redimensionados (modos "✋ Mover" e "🔲 Grupo"). Marque ruas e pontos por cima.</div>
+    </div>
+
+    <section>
+      <h2>Modo</h2>
+      <div class="modes">
+        <button data-mode="pan" class="active">🖐 Navegar</button>
+        <button data-mode="node">➕ Nó de rua</button>
+        <button data-mode="edge">🔗 Ligar nós</button>
+        <button data-mode="landmark">📍 Marco</button>
+        <button data-mode="move">✋ Mover</button>
+        <button data-mode="delete">🗑 Apagar</button>
+        <button data-mode="group">🔲 Grupo</button>
+      </div>
+      <div class="hint" id="modeHint">Arraste o mapa pra navegar. Use a roda do mouse (ou os botões +/-) pra dar zoom.</div>
+    </section>
+
+    <section>
+      <h2>Imagem de fundo (referência)</h2>
+      <input type="file" id="bgFile" accept="image/*">
+      <div class="hint">Carregue um print do Google Maps (ou outro) pra usar como referência por baixo dos lotes. Fica só no seu navegador, não é enviado.</div>
+      <div id="bgControls" style="display:none;margin-top:8px;">
+        <label style="font-size:11.5px;color:var(--ink-soft);">Opacidade</label>
+        <input type="range" id="bgOpacity" min="0" max="100" value="60" style="width:100%;">
+        <label style="font-size:11.5px;color:var(--ink-soft);">Rotação: <span id="bgRotVal">0°</span></label>
+        <input type="range" id="bgRotation" min="-180" max="180" value="0" step="0.5" style="width:100%;">
+        <div class="btnrow">
+          <button id="bgModeBtn">✋ Mover/redimensionar fundo</button>
+        </div>
+        <div class="hint">Nesse modo: arraste pra mover a imagem, roda do mouse pra redimensionar, Shift + roda do mouse pra girar.</div>
+        <div class="btnrow">
+          <button id="bgRemove">Remover imagem</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="landmarkOpts" style="display:none">
+      <h2>Categoria do marco</h2>
+      <select id="catSelect">
+        <option value="service">Serviço (saúde, polícia, brigada)</option>
+        <option value="public">Público / pórtico / acesso</option>
+        <option value="food">Alimentação / lazer</option>
+        <option value="shop">Loja / Casa do Gaúcho</option>
+        <option value="market">Mercado</option>
+        <option value="agro">Agricultura Familiar</option>
+        <option value="media">Imprensa</option>
+        <option value="stage">Palco</option>
+        <option value="park">Estacionamento</option>
+      </select>
+    </section>
+
+    <section>
+      <h2>Lotes — tamanho padrão</h2>
+      <div class="hint">Vale só pra lotes sem tamanho próprio definido num grupo (veja abaixo).</div>
+      <label style="font-size:11.5px;color:var(--ink-soft);">Largura: <span id="lotWVal">78</span></label>
+      <input type="range" id="lotW" min="20" max="140" value="78" style="width:100%;">
+      <label style="font-size:11.5px;color:var(--ink-soft);">Altura: <span id="lotHVal">78</span></label>
+      <input type="range" id="lotH" min="14" max="100" value="78" style="width:100%;">
+      <div class="btnrow">
+        <button id="btnLotsReset">Restaurar posições originais</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Grupo de lotes (<span id="selCount">0</span> selecionado(s))</h2>
+      <div class="hint">Modo "🔲 Grupo": clique nos lotes pra somar à seleção (clique de novo pra tirar), ou arraste num espaço vazio pra selecionar um intervalo. Depois arraste um dos selecionados pra mover todos juntos.</div>
+      <div id="groupSizeBox" style="display:none;margin-top:6px;">
+        <div class="row" style="border:none;">
+          <span style="flex:1">Largura</span><input type="text" id="groupW" style="width:70px;">
+        </div>
+        <div class="row" style="border:none;">
+          <span style="flex:1">Altura</span><input type="text" id="groupH" style="width:70px;">
+        </div>
+        <div class="btnrow">
+          <button class="primary" id="btnApplySize">Aplicar tamanho ao grupo</button>
+        </div>
+      </div>
+      <div class="btnrow">
+        <button id="btnClearSel">Limpar seleção</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Nós de rua (<span id="countNodes">0</span>)</h2>
+      <div class="listwrap" id="nodeList"></div>
+    </section>
+
+    <section>
+      <h2>Ligações (<span id="countEdges">0</span>)</h2>
+      <div class="listwrap" id="edgeList"></div>
+    </section>
+
+    <section>
+      <h2>Marcos (<span id="countMarks">0</span>)</h2>
+      <div class="listwrap" id="markList"></div>
+    </section>
+
+    <section>
+      <h2>Sessão</h2>
+      <div class="hint" id="sessionStatus">Salva automaticamente neste navegador a cada alteração — pode fechar e voltar depois.</div>
+      <div class="btnrow">
+        <button id="btnImport">Importar .json</button>
+        <input type="file" id="importFile" accept="application/json" style="display:none;">
+      </div>
+    </section>
+
+    <section>
+      <h2>Exportar</h2>
+      <div class="hint">Copie e me mande de volta (ou baixe o arquivo) quando terminar.</div>
+      <textarea id="exportBox" readonly></textarea>
+      <div class="btnrow">
+        <button class="primary" id="btnCopy">Copiar</button>
+        <button id="btnDownload">Baixar .json</button>
+      </div>
+      <div class="btnrow">
+        <button id="btnReset">Recomeçar do zero</button>
+      </div>
+    </section>
+  </aside>
+
+  <main>
+    <svg id="map" viewBox="100 800 6100 2350" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="zoom-ctrl">
+      <button id="zoomIn">+</button>
+      <button id="zoomOut">−</button>
+    </div>
+    <div class="toast" id="toast"></div>
+  </main>
+</div>
+
+<div class="icon-picker" id="iconPicker">
+  <div class="icon-picker-box">
+    <div class="icon-picker-head">
+      <b id="iconPickerTitle">Escolher ícone</b>
+      <input type="search" id="iconSearch" placeholder="filtrar…" style="width:150px;padding:4px 8px">
+      <label style="font-weight:400">tamanho
+        <input type="number" id="iconSizeInput" value="120" min="20" max="600" step="10" style="width:70px">
+      </label>
+      <button id="iconPickerNone">sem ícone</button>
+      <button id="iconPickerClose">✕</button>
+    </div>
+    <div class="icon-picker-grid" id="iconPickerGrid"></div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="icons.js"></script>
+<script>
+(function(){
+  "use strict";
+  const D = window.AF2026;
+  const ICONS = window.AF_ICONS || [];
+  const NS = 'http://www.w3.org/2000/svg';
+  function el(tag, attrs){ const e = document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+
+  // ---------- estado editavel (clonado a partir do data.js atual) ----------
+  let nodes = JSON.parse(JSON.stringify(D.roadNodes || {}));
+  let edges = JSON.parse(JSON.stringify(D.roadEdges || []));
+  let marks = JSON.parse(JSON.stringify(D.landmarks || []));
+  let lots = JSON.parse(JSON.stringify(D.lots || []));
+  // carregados so pra nao se perderem no export (o editor nao mexe neles)
+  let streetLabels = JSON.parse(JSON.stringify(D.streetLabels || []));
+  let gates = JSON.parse(JSON.stringify(D.gates || []));
+  let categories = JSON.parse(JSON.stringify(D.categories || {}));
+  const lotsOriginal = JSON.parse(JSON.stringify(D.lots || []));
+  let lotBoxSize = { w:78, h:78 };
+  let nodeSeq = Object.keys(nodes).length + 1;
+
+  const svg = document.getElementById('map');
+  const layerBg = el('g',{});
+  const layerLots = el('g',{}); const layerEdges = el('g',{}); const layerNodes = el('g',{});
+  const layerMarks = el('g',{});
+  [layerBg, layerLots, layerEdges, layerMarks, layerNodes].forEach(l=>svg.appendChild(l));
+
+  // ---------- imagem de fundo (referencia, carregada localmente pelo usuario) ----------
+  let bgImgEl = null;
+  let bgRect = null; // {x,y,w,h}
+  let bgRotation = 0; // graus
+  const bgFile = document.getElementById('bgFile');
+  const bgControls = document.getElementById('bgControls');
+  const bgRotationInput = document.getElementById('bgRotation');
+  const bgRotVal = document.getElementById('bgRotVal');
+  function updateBgTransform(){
+    if(!bgImgEl || !bgRect) return;
+    bgImgEl.setAttribute('x', bgRect.x); bgImgEl.setAttribute('y', bgRect.y);
+    bgImgEl.setAttribute('width', bgRect.w); bgImgEl.setAttribute('height', bgRect.h);
+    const cx = bgRect.x+bgRect.w/2, cy = bgRect.y+bgRect.h/2;
+    bgImgEl.setAttribute('transform', `rotate(${bgRotation} ${cx} ${cy})`);
+    bgRotVal.textContent = Math.round(bgRotation*10)/10 + '°';
+  }
+  function setBgRotation(deg){
+    bgRotation = ((deg+180)%360+360)%360-180; // normaliza pra -180..180
+    bgRotationInput.value = bgRotation;
+    updateBgTransform();
+  }
+  bgFile.addEventListener('change', ()=>{
+    const file = bgFile.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      const dataUrl = ev.target.result;
+      const probe = new Image();
+      probe.onload = ()=>{
+        const aspect = probe.naturalHeight / probe.naturalWidth;
+        const w = VB0.w*0.8, h = w*aspect;
+        bgRect = { x: VB0.x + VB0.w*0.1, y: VB0.y + VB0.h*0.1, w, h };
+        bgRotation = 0; bgRotationInput.value = 0;
+        if(bgImgEl) bgImgEl.remove();
+        bgImgEl = el('image',{ href:dataUrl, opacity:0.6, preserveAspectRatio:'none' });
+        layerBg.appendChild(bgImgEl);
+        updateBgTransform();
+        bgControls.style.display = 'block';
+        toast('Imagem carregada — use "Mover/redimensionar fundo" pra ajustar');
+        saveSession();
+      };
+      probe.src = dataUrl;
+    };
+    reader.readAsDataURL(file);
+  });
+  document.getElementById('bgOpacity').addEventListener('input',(e)=>{
+    if(bgImgEl) bgImgEl.setAttribute('opacity', e.target.value/100);
+  });
+  document.getElementById('bgOpacity').addEventListener('change', ()=> saveSession());
+  bgRotationInput.addEventListener('input', (e)=>{ bgRotation = parseFloat(e.target.value); updateBgTransform(); });
+  bgRotationInput.addEventListener('change', ()=> saveSession());
+  document.getElementById('bgRemove').addEventListener('click',()=>{
+    if(bgImgEl){ bgImgEl.remove(); bgImgEl=null; bgRect=null; bgRotation=0; bgRotationInput.value=0; }
+    bgControls.style.display='none'; bgFile.value='';
+    if(mode==='bgmove') setMode('pan');
+    saveSession();
+  });
+  document.getElementById('bgModeBtn').addEventListener('click',()=>{
+    if(!bgRect){ toast('Carregue uma imagem primeiro'); return; }
+    setMode(mode==='bgmove' ? 'pan' : 'bgmove');
+  });
+
+  document.getElementById('lotW').addEventListener('input',(e)=>{
+    lotBoxSize.w = +e.target.value; document.getElementById('lotWVal').textContent = e.target.value; render();
+  });
+  document.getElementById('lotH').addEventListener('input',(e)=>{
+    lotBoxSize.h = +e.target.value; document.getElementById('lotHVal').textContent = e.target.value; render();
+  });
+  document.getElementById('btnLotsReset').addEventListener('click',()=>{
+    if(!confirm('Voltar todos os lotes pra posição original do mapa 2026?')) return;
+    lots = JSON.parse(JSON.stringify(lotsOriginal));
+    lotBoxSize = { w:78, h:78 };
+    selectedLots.clear();
+    document.getElementById('lotW').value=68; document.getElementById('lotWVal').textContent=68;
+    document.getElementById('lotH').value=46; document.getElementById('lotHVal').textContent=46;
+    render();
+  });
+
+  const catColor = { service:'#e8748e', public:'#5b8def', food:'#c9863f', shop:'#6b6b6b',
+    market:'#e0791f', agro:'#c9a30d', media:'#1e8e3e', stage:'#c0286b', park:'#7a9e6f' };
+
+  // ---------- modo ----------
+  let mode = 'pan';
+  const hints = {
+    pan: 'Arraste o mapa pra navegar. Roda do mouse (ou botões) pra zoom.',
+    node: 'Clique em um espaço vazio do mapa pra criar um nó de rua (um ponto por onde a rua passa).',
+    edge: 'Clique em um nó, depois em outro, pra ligar os dois com um trecho de rua. Clique em uma ligação existente pra apagá-la.',
+    landmark: 'Escolha a categoria acima, depois clique no mapa pra marcar o ponto (vai pedir o nome).',
+    move: 'Arraste um nó, marco ou lote (um de cada vez) pra reposicionar.',
+    delete: 'Clique em um nó, ligação ou marco pra apagar.',
+    bgmove: 'Arraste pra mover a imagem de fundo. Roda do mouse pra redimensionar, Shift + roda pra girar.',
+    group: 'Clique nos lotes pra selecionar (de novo pra tirar), ou arraste num espaço vazio pra selecionar um intervalo. Arraste um selecionado pra mover o grupo todo.',
+  };
+  function setMode(m){
+    mode = m;
+    document.querySelectorAll('.modes button').forEach(b=> b.classList.toggle('active', b.dataset.mode===m));
+    document.getElementById('bgModeBtn').classList.toggle('active', m==='bgmove');
+    document.getElementById('modeHint').textContent = hints[m] || '';
+    document.getElementById('landmarkOpts').style.display = m==='landmark' ? 'block' : 'none';
+    svg.classList.toggle('pan', m==='pan');
+    edgeFirst = null;
+    render();
+  }
+  document.querySelectorAll('.modes button').forEach(btn=>{
+    btn.addEventListener('click', ()=> setMode(btn.dataset.mode));
+  });
+
+  // ---------- pan & zoom ----------
+  const VB0 = {x:100,y:800,w:6100,h:2350};
+  const VB = {...VB0};
+  function applyVB(){ svg.setAttribute('viewBox', `${VB.x} ${VB.y} ${VB.w} ${VB.h}`); }
+  applyVB();
+  function toSvg(clientX, clientY){
+    const r = svg.getBoundingClientRect();
+    return [ VB.x + (clientX-r.left)*(VB.w/r.width), VB.y + (clientY-r.top)*(VB.h/r.height) ];
+  }
+  let isPanning=false, panStart=null, vbStart=null;
+  let bgDragging = false, bgDragStart=null, bgRectStart=null;
+  svg.addEventListener('contextmenu', (e)=> e.preventDefault());
+  svg.addEventListener('pointerdown',(e)=>{
+    if(e.button===2){ // botao direito: sempre navega, em qualquer modo
+      isPanning=true; panStart={x:e.clientX,y:e.clientY}; vbStart={...VB}; svg.setPointerCapture(e.pointerId); return;
+    }
+    if(mode==='bgmove' && bgRect){
+      bgDragging=true; bgDragStart={x:e.clientX,y:e.clientY}; bgRectStart={...bgRect};
+      svg.setPointerCapture(e.pointerId); return;
+    }
+    if(mode==='group'){
+      if(e.target.closest('.rnode,.landmark,.redge,.gate')) return;
+      const [x,y] = toSvg(e.clientX,e.clientY);
+      groupAction = {type:'rubberband', x0:x, y0:y, x1:x, y1:y};
+      rubberEl = el('rect',{class:'rubberband', x, y, width:0, height:0});
+      layerLots.appendChild(rubberEl);
+      svg.setPointerCapture(e.pointerId);
+      return;
+    }
+    if(mode!=='pan') return;
+    if(e.target.closest('.rnode,.landmark,.redge,.gate')) return;
+    isPanning=true; panStart={x:e.clientX,y:e.clientY}; vbStart={...VB}; svg.setPointerCapture(e.pointerId);
+  });
+  svg.addEventListener('pointermove',(e)=>{
+    if(bgDragging){
+      const r = svg.getBoundingClientRect();
+      bgRect.x = bgRectStart.x + (e.clientX-bgDragStart.x)*(VB.w/r.width);
+      bgRect.y = bgRectStart.y + (e.clientY-bgDragStart.y)*(VB.h/r.height);
+      updateBgTransform();
+      return;
+    }
+    if(groupAction && groupAction.type==='rubberband'){
+      const [x,y] = toSvg(e.clientX,e.clientY);
+      groupAction.x1=x; groupAction.y1=y;
+      const rx=Math.min(groupAction.x0,x), ry=Math.min(groupAction.y0,y);
+      rubberEl.setAttribute('x',rx); rubberEl.setAttribute('y',ry);
+      rubberEl.setAttribute('width',Math.abs(x-groupAction.x0));
+      rubberEl.setAttribute('height',Math.abs(y-groupAction.y0));
+      return;
+    }
+    if(!isPanning) return;
+    const r = svg.getBoundingClientRect();
+    VB.x = vbStart.x - (e.clientX-panStart.x)*(VB.w/r.width);
+    VB.y = vbStart.y - (e.clientY-panStart.y)*(VB.h/r.height);
+    applyVB();
+  });
+  svg.addEventListener('pointerup',()=> {
+    isPanning=false;
+    if(bgDragging){ bgDragging=false; saveSession(); }
+    if(groupAction && groupAction.type==='rubberband'){
+      const rx=Math.min(groupAction.x0,groupAction.x1), ry=Math.min(groupAction.y0,groupAction.y1);
+      const rw=Math.abs(groupAction.x1-groupAction.x0), rh=Math.abs(groupAction.y1-groupAction.y0);
+      if(rw>4 && rh>4){
+        lots.forEach((l,idx)=>{ if(l.x>=rx&&l.x<=rx+rw&&l.y>=ry&&l.y<=ry+rh) selectedLots.add(idx); });
+      }
+      if(rubberEl){ rubberEl.remove(); rubberEl=null; }
+      groupAction=null;
+      render();
+    }
+  });
+  svg.addEventListener('pointerleave',()=> { isPanning=false; bgDragging=false; });
+  function zoom(factor){
+    const cx=VB.x+VB.w/2, cy=VB.y+VB.h/2;
+    VB.w=Math.max(300,Math.min(9000,VB.w*factor)); VB.h=VB.w*(VB0.h/VB0.w);
+    VB.x=cx-VB.w/2; VB.y=cy-VB.h/2; applyVB();
+  }
+  function scaleBg(factor){
+    const cx = bgRect.x+bgRect.w/2, cy = bgRect.y+bgRect.h/2;
+    bgRect.w *= factor; bgRect.h *= factor;
+    bgRect.x = cx-bgRect.w/2; bgRect.y = cy-bgRect.h/2;
+    updateBgTransform();
+  }
+  document.getElementById('zoomIn').addEventListener('click',()=>zoom(0.8));
+  document.getElementById('zoomOut').addEventListener('click',()=>zoom(1.25));
+  let saveDebounce = null;
+  function saveSessionDebounced(){ clearTimeout(saveDebounce); saveDebounce = setTimeout(saveSession, 400); }
+  svg.addEventListener('wheel',(e)=>{
+    e.preventDefault();
+    if(mode==='bgmove' && bgRect){
+      if(e.shiftKey) setBgRotation(bgRotation + (e.deltaY>0?-2:2));
+      else scaleBg(e.deltaY>0?0.92:1.08);
+      saveSessionDebounced();
+      return;
+    }
+    zoom(e.deltaY>0?1.1:0.9);
+  }, {passive:false});
+
+  // ---------- clique no fundo do mapa (criar no/marco) ----------
+  svg.addEventListener('click',(e)=>{
+    if(e.target.closest('.rnode,.landmark,.redge,.gate')) return; // tratado nos handlers dos itens
+    if(mode==='node'){
+      const [x,y] = toSvg(e.clientX,e.clientY);
+      const id = 'n'+(nodeSeq++);
+      nodes[id] = [Math.round(x),Math.round(y)];
+      toast('Nó '+id+' criado'); render();
+    } else if(mode==='landmark'){
+      const nome = prompt('Nome do marco (ex: Pórtico Rótula das Cuias):');
+      if(!nome) return;
+      const [x,y] = toSvg(e.clientX,e.clientY);
+      const cat = document.getElementById('catSelect').value;
+      marks.push({ nome, x:Math.round(x), y:Math.round(y), cat });
+      toast('Marco "'+nome+'" criado'); render();
+    }
+  });
+
+  let edgeFirst = null;
+  let dragging = null; // {type:'node'|'mark'|'lot', id or index}
+  let selectedLots = new Set();
+  let clickCandidate = null; // {idx, clientX, clientY, moved}
+  let groupAction = null; // {type:'movegroup'|'rubberband', ...}
+  let rubberEl = null;
+
+  function render(){
+    layerEdges.innerHTML=''; layerNodes.innerHTML=''; layerMarks.innerHTML=''; layerLots.innerHTML='';
+
+    lots.forEach((l,idx)=>{
+      const w=l.w||lotBoxSize.w, h=l.h||lotBoxSize.h;
+      const sel = selectedLots.has(idx);
+      const g = el('g',{transform:`translate(${l.x-w/2},${l.y-h/2})`, style: (mode==='move'||mode==='group') ? 'cursor:move' : ''});
+      g.appendChild(el('rect',{class:'lot'+(sel?' selected':''), x:0,y:0,width:w,height:h,rx:6}));
+      const t = el('text',{class:'lot-num', x:w/2, y:h/2+3});
+      t.textContent = l.num; g.appendChild(t);
+      g.addEventListener('pointerdown',(ev)=>{
+        if(mode==='move'){
+          ev.stopPropagation();
+          dragging = {type:'lot', id:idx}; svg.setPointerCapture(ev.pointerId);
+        } else if(mode==='group'){
+          ev.stopPropagation();
+          clickCandidate = {idx, clientX:ev.clientX, clientY:ev.clientY, moved:false};
+          svg.setPointerCapture(ev.pointerId);
+        }
+      });
+      layerLots.appendChild(g);
+    });
+
+    edges.forEach((pair,idx)=>{
+      const [a,b] = pair;
+      if(!nodes[a] || !nodes[b]) return;
+      const [x1,y1]=nodes[a], [x2,y2]=nodes[b];
+      const line = el('line',{class:'redge', x1,y1,x2,y2});
+      line.addEventListener('click',(ev)=>{
+        ev.stopPropagation();
+        if(mode==='delete' || mode==='edge'){ edges.splice(idx,1); render(); toast('Ligação apagada'); }
+      });
+      layerEdges.appendChild(line);
+    });
+
+    Object.entries(nodes).forEach(([id,pos])=>{
+      const [x,y] = pos;
+      const isFirst = edgeFirst===id;
+      const c = el('circle',{class:'rnode', cx:x, cy:y, r: isFirst?12:8, fill: isFirst?'#e8710a':'#1a73e8'});
+      c.addEventListener('pointerdown',(ev)=>{
+        ev.stopPropagation();
+        if(mode==='move'){ dragging = {type:'node', id}; svg.setPointerCapture(ev.pointerId); }
+      });
+      c.addEventListener('click',(ev)=>{
+        ev.stopPropagation();
+        if(mode==='edge'){
+          if(!edgeFirst){ edgeFirst=id; render(); }
+          else if(edgeFirst!==id){
+            const exists = edges.some(([a,b])=> (a===edgeFirst&&b===id)||(a===id&&b===edgeFirst));
+            if(!exists) edges.push([edgeFirst,id]);
+            edgeFirst=null; render(); toast('Ligação criada');
+          }
+        } else if(mode==='delete'){
+          delete nodes[id];
+          edges = edges.filter(([a,b])=> a!==id && b!==id);
+          render(); toast('Nó apagado');
+        }
+      });
+      c.addEventListener('dblclick',(ev)=>{ ev.stopPropagation(); renameNode(id); });
+      layerNodes.appendChild(c);
+      const t = el('text',{class:'rnode-label', x:x+11, y:y-11});
+      t.textContent = id; layerNodes.appendChild(t);
+    });
+
+    marks.forEach((m,idx)=>{
+      const col = catColor[m.cat] || '#333';
+      let hit;
+      if(m.icon){
+        // marco com icone: desenha a arte redonda, tamanho ajustavel (iconSize)
+        const s = m.iconSize || 120;
+        const img = el('image',{href:'icons/'+m.icon+'.png', x:m.x-s/2, y:m.y-s/2, width:s, height:s});
+        img.setAttributeNS('http://www.w3.org/1999/xlink','href','icons/'+m.icon+'.png');
+        layerMarks.appendChild(img);
+        hit = el('circle',{class:'landmark', cx:m.x, cy:m.y, r:s/2, fill:'transparent', stroke:'none'});
+        const t = el('text',{class:'landmark-label', x:m.x, y:m.y+s/2+13, fill:'#222', 'text-anchor':'middle'});
+        t.textContent = m.nome;
+        layerMarks.appendChild(hit); layerMarks.appendChild(t);
+        hit.addEventListener('wheel',(ev)=>{
+          ev.preventDefault(); ev.stopPropagation();
+          m.iconSize = Math.max(20, Math.min(600, Math.round((m.iconSize||120) * (ev.deltaY>0?0.92:1.08))));
+          render(); toast('Ícone: '+m.iconSize+'px');
+        }, {passive:false});
+      } else if(m.shape==='poly' && m.points){
+        const pts = m.points.map(p=>p.join(',')).join(' ');
+        hit = el('polygon',{class:'landmark', points:pts, fill:col, opacity:m.behind?0.28:0.55,
+          stroke:col, 'stroke-width':2, 'stroke-dasharray': m.behind ? '10 6' : 'none'});
+        const cy = Math.min(...m.points.map(p=>p[1])) - 10;
+        const cx = m.points.reduce((s,p)=>s+p[0],0)/m.points.length;
+        const t = el('text',{class:'landmark-label', x:cx, y:cy, fill:'#222', 'text-anchor':'middle'});
+        t.textContent = m.nome; layerMarks.appendChild(hit); layerMarks.appendChild(t);
+      } else if(m.shape==='rect'){
+        const w = m.w||120, h = m.h||120;
+        hit = el('rect',{class:'landmark', x:m.x-w/2, y:m.y-h/2, width:w, height:h, rx:8,
+          fill:col, opacity:m.behind?0.28:0.55, stroke:col, 'stroke-width':2,
+          'stroke-dasharray': m.behind ? '10 6' : 'none'});
+        const t = el('text',{class:'landmark-label', x:m.x, y:m.y, fill:'#fff', 'text-anchor':'middle'});
+        t.textContent = m.nome; layerMarks.appendChild(hit); layerMarks.appendChild(t);
+      } else {
+        hit = el('circle',{class:'landmark', cx:m.x, cy:m.y, r:11, fill:col});
+        const t = el('text',{class:'landmark-label', x:m.x+13, y:m.y+4, fill:col});
+        layerMarks.appendChild(hit);
+        t.textContent = m.nome; layerMarks.appendChild(t);
+      }
+      hit.addEventListener('pointerdown',(ev)=>{
+        ev.stopPropagation();
+        if(mode==='move'){ dragging = {type:'mark', id:idx}; svg.setPointerCapture(ev.pointerId); }
+      });
+      hit.addEventListener('click',(ev)=>{
+        ev.stopPropagation();
+        if(mode==='delete'){ marks.splice(idx,1); render(); toast('Marco apagado'); }
+      });
+      hit.addEventListener('dblclick',(ev)=>{ ev.stopPropagation(); resizeMark(idx); });
+    });
+
+    updateLists();
+    updateExport();
+    updateSelectionUI();
+    saveSessionDebounced();
+  }
+
+  function updateSelectionUI(){
+    document.getElementById('selCount').textContent = selectedLots.size;
+    const box = document.getElementById('groupSizeBox');
+    if(selectedLots.size===0){ box.style.display='none'; return; }
+    box.style.display='block';
+    const idxs = [...selectedLots];
+    const first = lots[idxs[0]];
+    const w0 = first.w||lotBoxSize.w, h0 = first.h||lotBoxSize.h;
+    const allSameW = idxs.every(i=> (lots[i].w||lotBoxSize.w)===w0);
+    const allSameH = idxs.every(i=> (lots[i].h||lotBoxSize.h)===h0);
+    document.getElementById('groupW').value = allSameW ? w0 : '';
+    document.getElementById('groupH').value = allSameH ? h0 : '';
+  }
+  document.getElementById('btnApplySize').addEventListener('click',()=>{
+    const w = parseFloat(document.getElementById('groupW').value);
+    const h = parseFloat(document.getElementById('groupH').value);
+    if(!w && !h){ toast('Digite pelo menos largura ou altura'); return; }
+    selectedLots.forEach(i=>{ if(w) lots[i].w=w; if(h) lots[i].h=h; });
+    render();
+    toast('Tamanho aplicado a '+selectedLots.size+' lote(s)');
+  });
+  document.getElementById('btnClearSel').addEventListener('click',()=>{
+    selectedLots.clear(); render();
+  });
+
+  svg.addEventListener('pointermove',(e)=>{
+    if(clickCandidate){
+      const dx = e.clientX-clickCandidate.clientX, dy = e.clientY-clickCandidate.clientY;
+      if(!clickCandidate.moved && Math.hypot(dx,dy) > 4){
+        clickCandidate.moved = true;
+        if(!selectedLots.has(clickCandidate.idx)){ selectedLots.clear(); selectedLots.add(clickCandidate.idx); }
+        groupAction = { type:'movegroup', startClientX:e.clientX, startClientY:e.clientY,
+          startPositions: [...selectedLots].map(i=>({idx:i,x:lots[i].x,y:lots[i].y})) };
+        render();
+      }
+      if(clickCandidate.moved && groupAction && groupAction.type==='movegroup'){
+        const r = svg.getBoundingClientRect();
+        const ddx = (e.clientX-groupAction.startClientX)*(VB.w/r.width);
+        const ddy = (e.clientY-groupAction.startClientY)*(VB.h/r.height);
+        groupAction.startPositions.forEach(p=>{ lots[p.idx].x = Math.round(p.x+ddx); lots[p.idx].y = Math.round(p.y+ddy); });
+        render();
+      }
+      return;
+    }
+    if(!dragging) return;
+    const [x,y] = toSvg(e.clientX,e.clientY);
+    if(dragging.type==='node') nodes[dragging.id] = [Math.round(x),Math.round(y)];
+    else if(dragging.type==='lot') lots[dragging.id].x = Math.round(x), lots[dragging.id].y = Math.round(y);
+    else marks[dragging.id].x = Math.round(x), marks[dragging.id].y = Math.round(y);
+    render();
+  });
+  svg.addEventListener('pointerup',()=> {
+    dragging=null;
+    if(clickCandidate){
+      if(!clickCandidate.moved){
+        if(selectedLots.has(clickCandidate.idx)) selectedLots.delete(clickCandidate.idx);
+        else selectedLots.add(clickCandidate.idx);
+        render();
+      } else {
+        saveSessionDebounced();
+      }
+      clickCandidate = null; groupAction = null;
+    }
+  });
+
+  function renameNode(oldId){
+    const novo = prompt('Novo nome pro nó "'+oldId+'":', oldId);
+    if(!novo || novo===oldId) return;
+    if(nodes[novo]){ toast('Já existe um nó chamado "'+novo+'"'); return; }
+    nodes[novo] = nodes[oldId];
+    delete nodes[oldId];
+    edges = edges.map(([a,b])=> [a===oldId?novo:a, b===oldId?novo:b]);
+    if(edgeFirst===oldId) edgeFirst = novo;
+    render();
+    toast('Nó renomeado pra "'+novo+'"');
+  }
+
+  function resizeMark(idx){
+    const m = marks[idx];
+    if(m.icon){
+      const s = prompt('Tamanho do ícone de "'+m.nome+'" (também dá pra usar a rodinha do mouse em cima dele):', m.iconSize||120);
+      if(s===null) return;
+      m.iconSize = Math.max(20, Math.min(600, parseFloat(s) || m.iconSize || 120));
+      render(); toast('Ícone: '+m.iconSize+'px');
+      return;
+    }
+    if(m.shape!=='rect'){
+      if(!confirm('"'+m.nome+'" é um marco em ponto (bolinha). Transformar em área retangular pra poder redimensionar?')) return;
+      m.shape='rect'; m.w=120; m.h=120;
+    }
+    const w = prompt('Largura de "'+m.nome+'":', m.w);
+    if(w===null) return;
+    const h = prompt('Altura de "'+m.nome+'":', m.h);
+    if(h===null) return;
+    m.w = parseFloat(w)||m.w; m.h = parseFloat(h)||m.h;
+    render();
+    toast('Tamanho de "'+m.nome+'" atualizado');
+  }
+
+  // ---------- seletor de icone dos marcos ----------
+  const picker = document.getElementById('iconPicker');
+  const pickerGrid = document.getElementById('iconPickerGrid');
+  const iconSizeInput = document.getElementById('iconSizeInput');
+  let pickerIdx = null;
+
+  const iconSearch = document.getElementById('iconSearch');
+  function pintaGrid(){
+    if(pickerIdx==null) return;
+    const m = marks[pickerIdx];
+    const q = (iconSearch.value||'').toLowerCase().trim();
+    pickerGrid.innerHTML = '';
+    ICONS.filter(ic => !q || ic.nome.toLowerCase().includes(q) || ic.id.includes(q)).forEach(ic=>{
+      const b = document.createElement('div');
+      b.className = 'icon-opt' + (m.icon===ic.id ? ' sel' : '');
+      b.innerHTML = `<img src="icons/${ic.id}.png" alt=""><span>${ic.nome}</span>`;
+      b.title = ic.nome;
+      b.addEventListener('click', ()=>{
+        m.icon = ic.id;
+        m.iconSize = parseInt(iconSizeInput.value,10) || 120;
+        picker.classList.remove('open');
+        render(); toast('Ícone "'+ic.nome+'" aplicado');
+      });
+      pickerGrid.appendChild(b);
+    });
+  }
+  iconSearch.addEventListener('input', pintaGrid);
+  function chooseIcon(idx){
+    pickerIdx = idx;
+    const m = marks[idx];
+    document.getElementById('iconPickerTitle').textContent = 'Ícone de "'+m.nome+'"';
+    iconSizeInput.value = m.iconSize || 120;
+    iconSearch.value = '';
+    pintaGrid();
+    picker.classList.add('open');
+  }
+  iconSizeInput.addEventListener('change', ()=>{
+    if(pickerIdx==null) return;
+    marks[pickerIdx].iconSize = parseInt(iconSizeInput.value,10) || 120;
+    render();
+  });
+  document.getElementById('iconPickerClose').addEventListener('click', ()=> picker.classList.remove('open'));
+  document.getElementById('iconPickerNone').addEventListener('click', ()=>{
+    if(pickerIdx!=null){ delete marks[pickerIdx].icon; delete marks[pickerIdx].iconSize; render(); }
+    picker.classList.remove('open');
+  });
+  picker.addEventListener('click',(ev)=>{ if(ev.target===picker) picker.classList.remove('open'); });
+
+  function updateLists(){
+    document.getElementById('countNodes').textContent = Object.keys(nodes).length;
+    document.getElementById('countEdges').textContent = edges.length;
+    document.getElementById('countMarks').textContent = marks.length;
+
+    const nl = document.getElementById('nodeList'); nl.innerHTML='';
+    Object.entries(nodes).forEach(([id,pos])=>{
+      const row = document.createElement('div'); row.className='row';
+      row.innerHTML = `<span>${id} (${pos[0]}, ${pos[1]})</span>`;
+      const renameBtn = document.createElement('button'); renameBtn.textContent='✎'; renameBtn.style.color='#5b8def';
+      renameBtn.title = 'Renomear nó';
+      renameBtn.addEventListener('click', ()=> renameNode(id));
+      const delBtn = document.createElement('button'); delBtn.textContent='✕';
+      delBtn.addEventListener('click', ()=>{ delete nodes[id]; edges = edges.filter(([a,b])=>a!==id&&b!==id); render(); });
+      row.appendChild(renameBtn); row.appendChild(delBtn); nl.appendChild(row);
+    });
+
+    const el2 = document.getElementById('edgeList'); el2.innerHTML='';
+    edges.forEach((pair,idx)=>{
+      const row = document.createElement('div'); row.className='row';
+      row.innerHTML = `<span>${pair[0]} → ${pair[1]}</span>`;
+      const btn = document.createElement('button'); btn.textContent='✕';
+      btn.addEventListener('click', ()=>{ edges.splice(idx,1); render(); });
+      row.appendChild(btn); el2.appendChild(row);
+    });
+
+    const ml = document.getElementById('markList'); ml.innerHTML='';
+    marks.forEach((m,idx)=>{
+      const row = document.createElement('div'); row.className='row';
+      const nomeIcone = m.icon ? ((ICONS.find(i=>i.id===m.icon)||{}).nome || m.icon) : null;
+      row.innerHTML = `<span>${m.nome} <em style="color:#999">(${nomeIcone ? '🖼 '+nomeIcone : m.cat})</em></span>`;
+      const iconBtn = document.createElement('button'); iconBtn.textContent='🖼'; iconBtn.style.color='#5b8def';
+      iconBtn.title = 'Escolher ícone (e tamanho)';
+      iconBtn.addEventListener('click', ()=> chooseIcon(idx));
+      const resizeBtn = document.createElement('button'); resizeBtn.textContent='⤢'; resizeBtn.style.color='#5b8def';
+      resizeBtn.title = 'Redimensionar área';
+      resizeBtn.addEventListener('click', ()=> resizeMark(idx));
+      const btn = document.createElement('button'); btn.textContent='✕';
+      btn.addEventListener('click', ()=>{ marks.splice(idx,1); render(); });
+      row.appendChild(iconBtn); row.appendChild(resizeBtn); row.appendChild(btn); ml.appendChild(row);
+    });
+  }
+
+  function updateExport(){
+    // export COMPLETO: inclui tambem o que o editor nao edita (rotulos de rua, portoes,
+    // categorias). Sem isso um round-trip pelo editor apagaria esses dados do data.js.
+    const out = { roadNodes: nodes, roadEdges: edges, landmarks: marks, lots, lotBoxSize,
+                  streetLabels: streetLabels, gates: gates, categories: categories };
+    document.getElementById('exportBox').value = JSON.stringify(out, null, 1);
+  }
+
+  // ---------- sessao salva automaticamente no navegador (localStorage) ----------
+  // v2: sobe a versao pra ignorar sessoes salvas antigas e forcar carregar o data.js atualizado
+  // v3: ruas renomeadas pelo mapa oficial, nós de curva, ícones e rótulos recalculados.
+  // Subir a versão descarta sessões antigas do navegador pra não sobrescrever esses dados.
+  const STORAGE_KEY = 'af2026_editor_session_v4';
+  function saveSession(){
+    const status = document.getElementById('sessionStatus');
+    try{
+      const data = {
+        nodes, edges, marks, lots, lotBoxSize, streetLabels, gates, categories,
+        bg: bgRect ? { rect: bgRect, rotation: bgRotation, opacity: bgImgEl.getAttribute('opacity'), dataUrl: bgImgEl.getAttribute('href') } : null,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      status.textContent = 'Salvo automaticamente neste navegador — última vez agora, ' + new Date().toLocaleTimeString('pt-BR');
+    }catch(e){
+      // provavelmente estourou o limite do localStorage (geralmente por causa da imagem de fundo)
+      try{
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({nodes, edges, marks, lots, lotBoxSize, streetLabels, gates, categories, bg:null}));
+        status.textContent = 'Salvo sem a imagem de fundo (ficou grande demais pra salvar automaticamente).';
+      }catch(e2){
+        status.textContent = 'Não consegui salvar automaticamente — use "Baixar .json" pra não perder o trabalho.';
+      }
+    }
+  }
+  function restoreSession(){
+    let raw;
+    try{ raw = localStorage.getItem(STORAGE_KEY); }catch(e){ return; }
+    if(!raw) return;
+    let data;
+    try{ data = JSON.parse(raw); }catch(e){ return; }
+    if(data.nodes) nodes = data.nodes;
+    if(data.edges) edges = data.edges;
+    if(data.marks) marks = data.marks;
+    if(data.lots) lots = data.lots;
+    if(data.streetLabels) streetLabels = data.streetLabels;
+    if(data.gates) gates = data.gates;
+    if(data.categories) categories = data.categories;
+    if(data.lotBoxSize){
+      lotBoxSize = data.lotBoxSize;
+      document.getElementById('lotW').value = lotBoxSize.w; document.getElementById('lotWVal').textContent = lotBoxSize.w;
+      document.getElementById('lotH').value = lotBoxSize.h; document.getElementById('lotHVal').textContent = lotBoxSize.h;
+    }
+    nodeSeq = Math.max(nodeSeq, Object.keys(nodes).length+1);
+    if(data.bg && data.bg.dataUrl){
+      bgRect = data.bg.rect;
+      bgRotation = data.bg.rotation || 0;
+      bgImgEl = el('image',{ href:data.bg.dataUrl, opacity:data.bg.opacity||0.6, preserveAspectRatio:'none' });
+      layerBg.appendChild(bgImgEl);
+      updateBgTransform();
+      document.getElementById('bgControls').style.display = 'block';
+      document.getElementById('bgOpacity').value = Math.round((data.bg.opacity||0.6)*100);
+      bgRotationInput.value = bgRotation;
+    }
+    toast('Sessão anterior restaurada');
+  }
+  document.getElementById('btnImport').addEventListener('click', ()=> document.getElementById('importFile').click());
+  document.getElementById('importFile').addEventListener('change', ()=>{
+    const file = document.getElementById('importFile').files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      let data;
+      try{ data = JSON.parse(ev.target.result); }catch(e){ toast('Arquivo inválido'); return; }
+      nodes = data.roadNodes || data.nodes || {};
+      edges = data.roadEdges || data.edges || [];
+      marks = data.landmarks || data.marks || [];
+      if(data.lots) lots = data.lots;
+      if(data.streetLabels) streetLabels = data.streetLabels;
+      if(data.gates) gates = data.gates;
+      if(data.categories) categories = data.categories;
+      if(data.lotBoxSize){
+        lotBoxSize = data.lotBoxSize;
+        document.getElementById('lotW').value = lotBoxSize.w; document.getElementById('lotWVal').textContent = lotBoxSize.w;
+        document.getElementById('lotH').value = lotBoxSize.h; document.getElementById('lotHVal').textContent = lotBoxSize.h;
+      }
+      selectedLots.clear();
+      nodeSeq = Object.keys(nodes).length + 1;
+      render();
+      toast('Importado de "'+file.name+'"');
+    };
+    reader.readAsText(file);
+  });
+
+  document.getElementById('btnCopy').addEventListener('click', ()=>{
+    const box = document.getElementById('exportBox');
+    box.select();
+    navigator.clipboard && navigator.clipboard.writeText(box.value).then(()=> toast('Copiado!'));
+  });
+  document.getElementById('btnDownload').addEventListener('click', ()=>{
+    const blob = new Blob([document.getElementById('exportBox').value], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ruas_marcos.json';
+    a.click();
+  });
+  document.getElementById('btnReset').addEventListener('click', ()=>{
+    if(!confirm('Apagar tudo e recomeçar do zero? (isso também apaga a sessão salva neste navegador)')) return;
+    nodes={}; edges=[]; marks=[]; nodeSeq=1;
+    if(bgImgEl){ bgImgEl.remove(); bgImgEl=null; bgRect=null; bgRotation=0; bgRotationInput.value=0; }
+    bgControls.style.display='none'; bgFile.value='';
+    try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+    render();
+  });
+
+  let toastTimer=null;
+  function toast(msg){
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(()=> t.classList.remove('show'), 1600);
+  }
+
+  restoreSession();
+  render();
+})();
+</script>
+</body>
+</html>
