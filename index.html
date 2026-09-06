@@ -79,6 +79,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
 .place-card-cat{font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
 .place-card-title{font-family:'Roboto Condensed',sans-serif;font-size:19px;font-weight:700;margin-bottom:12px;}
 .place-card-actions{display:flex;gap:8px;}
+.place-aviso{margin-top:10px;font-size:12px;line-height:1.5;color:var(--ink-soft);background:var(--ground);border-radius:8px;padding:10px 12px;}
 .place-directions-btn{padding:9px 16px;border:none;border-radius:20px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:13px;cursor:pointer;}
 
 /* legenda como painel flutuante (aberto pelo hamburguer) */
@@ -216,6 +217,10 @@ svg#map.modo-esquematico .esquematico{display:inline;}
       <div class="place-card-actions">
         <button class="place-directions-btn" id="btnPlaceDirections">🧭 Rotas</button>
       </div>
+      <div class="place-aviso" id="placeAviso" style="display:none;">
+        Este estabelecimento aparece na listagem do evento, mas o mapa oficial não
+        marca onde ele fica — então não dá pra traçar a rota até ele.
+      </div>
     </div>
 
     <div class="sheet-page" id="page-route">
@@ -336,7 +341,8 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     kind:'lote', num:String(l.num), nome:l.nome, x:l.x, y:l.y,
   }));
   // tipo ("Loja", "Alimentação") so aparece na busca; no mapa fica so o nome curto
-  D.landmarks.forEach(p => points.push({ kind:'poi', num:'', nome:p.nome, x:p.x, y:p.y, cat:p.cat, tipo:p.tipo, alias:p.alias }));
+  D.landmarks.forEach(p => points.push({ kind:'poi', num:'', nome:p.nome, x:p.x, y:p.y, cat:p.cat,
+    tipo:p.tipo, alias:p.alias, tambemChamado:p.tambemChamado }));
 
   const CAT_LABEL = {
     INST:'Institucional', PAT:'Patrocinador', IMPRENSA:'Imprensa', COMERCIO:'Comércio (alimentação)',
@@ -351,6 +357,11 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   // um segundo ponto — so penduramos o rotulo da categoria no que ja existe.
   const porNome = new Map();
   points.forEach(p=> porNome.set(semAcento(p.nome), p));
+  // apelidos: a listagem do PDF abrevia ("Rbs", "Smed", "Gov. Do Estado"). Sem isso
+  // eles viravam um ponto solto numa ancora inventada, longe do lugar de verdade.
+  D.landmarks.forEach(l => (l.tambemChamado||[]).forEach(a=>{
+    if(!porNome.has(semAcento(a))) porNome.set(semAcento(a), porNome.get(semAcento(l.nome)));
+  }));
   let catDedup = 0;
   Object.keys(D.categories).forEach(cat=>{
     D.categories[cat].forEach(nome=>{
@@ -360,9 +371,12 @@ svg#map.modo-esquematico .esquematico{display:inline;}
         catDedup++;
         return;
       }
+      // Nao temos onde fica: o PDF lista o nome mas nao marca a posicao. Antes isso
+      // caia numa ancora generica e a rota levava a pessoa pro lugar errado com
+      // aparencia de certeza. Agora entra sem coordenada e sem rota.
       const [ax,ay] = CAT_ANCHOR[cat];
-      points.push({ kind:'cat', num:'', nome, x:ax+(Math.random()-0.5)*40, y:ay+(Math.random()-0.5)*40,
-        catGroup: CAT_LABEL[cat], noExactPos:true });
+      points.push({ kind:'cat', num:'', nome, x:ax, y:ay,
+        catGroup: CAT_LABEL[cat], noExactPos:true, semLocal:true });
     });
   });
 
@@ -370,12 +384,21 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     if(p.kind==='lote') return p.nome ? `${p.num} — ${p.nome}` : `Lote ${p.num}`;
     return p.tipo ? `${p.tipo} ${p.nome}` : p.nome;
   }
-  function semAcento(s){ return (s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase(); }
+  // tira acento E pontuacao: 'quero-quero', 'quero quero' e 'Quero Quero' viram a
+  // mesma coisa, entao a busca nao depende de como a pessoa digita.
+  function semAcento(s){
+    return (s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+                  .toLowerCase().replace(/[^a-z0-9]/g,'');
+  }
   function matches(p,q){
     q=semAcento(q);
     // busca pelo nome exibido, entao "loja" lista todas as lojas e "sabia" acha "Loja Sabiá"
     // alias = sinonimos so pra busca ("banheiro" acha "Sanitarios"), nao aparecem no mapa
-    return (p.num && p.num.includes(q)) || semAcento(displayName(p)).includes(q) || semAcento(p.alias).includes(q);
+    if(p.num && p.num.includes(q)) return true;
+    if(semAcento(displayName(p)).includes(q)) return true;
+    if(semAcento(p.alias).includes(q)) return true;
+    // tambemChamado: nomes abreviados da listagem do PDF ("Guaiba Record", "Gov. Do Estado")
+    return (p.tambemChamado||[]).some(a => semAcento(a).includes(q));
   }
 
   // ============ grafo de ruas ============
@@ -1217,7 +1240,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     shop:'Loja / feira', market:'Mercado', agro:'Agricultura familiar', media:'Imprensa', stage:'Palco', park:'Estacionamento' };
   function onMapPick(p){
     // com partida fixa ligada, escolher um lugar ja vira rota: so o destino e escolhido
-    if(partidaFixaLigada() && p.nome !== PARTIDA_FIXA){
+    if(partidaFixaLigada() && p.nome !== PARTIDA_FIXA && !p.semLocal){
       const origem = pontoPartidaFixa();
       if(origem){
         stops = [origem, p];
@@ -1234,12 +1257,15 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     selectedPlace = p;
     document.getElementById('placeTitle').textContent = displayName(p);
     document.getElementById('placeCat').textContent = catNiceLabel[p.cat] || p.catGroup || (p.kind==='lote' ? 'Piquete' : '');
+    const semLocal = !!p.semLocal;
+    document.getElementById('btnPlaceDirections').style.display = semLocal ? 'none' : '';
+    document.getElementById('placeAviso').style.display = semLocal ? 'block' : 'none';
     placeCard.style.display = 'block';
     searchResults.innerHTML = '';
     mainSug.classList.remove('open');
   }
   document.getElementById('btnPlaceDirections').addEventListener('click', ()=>{
-    if(!selectedPlace) return;
+    if(!selectedPlace || selectedPlace.semLocal) return;
     let idx = stops.findIndex(s=>!s);
     if(idx===-1) idx = stops.length-1;
     stops[idx] = selectedPlace;

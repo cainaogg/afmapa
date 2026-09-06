@@ -7,9 +7,26 @@ https://cainaogg.github.io/afmapa/
 
 ---
 
-## 1. Correção — 45 nomes levam a rota para o lugar errado
+## 1. Correção — nomes sem posição — RESOLVIDO EM PARTE
 
-**Este é o item mais urgente da lista, e não é uma feature: é um defeito.**
+Eram 45 nomes que a busca achava mas cuja rota levava para uma âncora inventada.
+
+**12 viraram apelido de marcos que já existiam** e agora levam ao lugar certo:
+Rbs, Guaíba Record, Smed, Gov. do Estado, Pref. Munic. de Porto Alegre, Bat,
+Bauducco, Produtos Agrícolas, Bonfa, Mark, Tupiniquim e RS Eventos.
+
+**Sobraram 33** (31 de comércio + Ambev duplicado). Continuam na busca, mas com
+o aviso de que o mapa oficial não marca onde ficam e **sem botão de rota** — não
+mandam mais ninguém para o lugar errado.
+
+Falta mapear os 31 de comércio. O levantamento será feito em campo, anotando em
+qual praça de alimentação fica cada um; com essa lista, é só ligar nome à praça.
+Confirmado que essa informação **não existe no PDF**: as praças são só uma área
+vermelha com o ícone de garfo, sem subdivisão nem nome de barraca.
+
+O texto abaixo é o registro do problema original.
+
+**Era o item mais urgente da lista, e não era uma feature: era um defeito.**
 
 O `data.js` tem uma seção `categories` que veio da listagem do PDF: são só nomes,
 sem coordenada. Quem procura por eles encontra normalmente, mas a rota vai para

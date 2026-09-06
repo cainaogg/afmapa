@@ -3079,7 +3079,10 @@ window.AF2026 = {
    "y": 1948,
    "cat": "media",
    "icon": "grupo_rbs",
-   "iconSize": 90
+   "iconSize": 90,
+   "tambemChamado": [
+    "Rbs"
+   ]
   },
   {
    "nome": "Palco Jayme Caetano Braun",
@@ -3503,7 +3506,10 @@ window.AF2026 = {
    "cat": "shop",
    "icon": "produtores_gauchos_unidos",
    "iconSize": 57,
-   "tipo": "Loja"
+   "tipo": "Loja",
+   "tambemChamado": [
+    "Produtos Agrícolas"
+   ]
   },
   {
    "nome": "Estilo & Tradição",
@@ -3530,7 +3536,10 @@ window.AF2026 = {
    "cat": "food",
    "icon": "bonfa",
    "iconSize": 57,
-   "tipo": "Alimentação"
+   "tipo": "Alimentação",
+   "tambemChamado": [
+    "Bonfa Cachorro-Quente"
+   ]
   },
   {
    "nome": "Santo Forte",
@@ -3548,7 +3557,10 @@ window.AF2026 = {
    "cat": "food",
    "icon": "mark_hamburgueria",
    "iconSize": 57,
-   "tipo": "Alimentação"
+   "tipo": "Alimentação",
+   "tambemChamado": [
+    "Mark Hamburgueria"
+   ]
   },
   {
    "nome": "Tupiniquim",
@@ -3557,7 +3569,10 @@ window.AF2026 = {
    "cat": "food",
    "icon": "tupiniquim",
    "iconSize": 78,
-   "tipo": "Alimentação"
+   "tipo": "Alimentação",
+   "tambemChamado": [
+    "Tupiniquim Biergarten"
+   ]
   },
   {
    "nome": "RS Eventos Esportivos",
@@ -3566,7 +3581,10 @@ window.AF2026 = {
    "cat": "shop",
    "icon": "rs_eventos_esportivos",
    "iconSize": 57,
-   "tipo": "Loja"
+   "tipo": "Loja",
+   "tambemChamado": [
+    "Rs Eventos"
+   ]
   },
   {
    "nome": "Corsan Aegea",
@@ -3652,7 +3670,10 @@ window.AF2026 = {
    "cat": "public",
    "icon": "piquete_prefeitura",
    "iconSize": 80,
-   "alias": "prefeitura informacoes balcao"
+   "alias": "prefeitura informacoes balcao",
+   "tambemChamado": [
+    "Pref. Munic. De Porto Alegre"
+   ]
   },
   {
    "nome": "Piquete Estância da Harmonia",
@@ -3743,7 +3764,10 @@ window.AF2026 = {
    "y": 1903,
    "cat": "public",
    "icon": "brasao_rs",
-   "iconSize": 90
+   "iconSize": 90,
+   "tambemChamado": [
+    "Gov. Do Estado"
+   ]
   },
   {
    "nome": "Droga Raia",
@@ -3759,7 +3783,10 @@ window.AF2026 = {
    "y": 2039,
    "cat": "public",
    "icon": "bauducco",
-   "iconSize": 90
+   "iconSize": 90,
+   "tambemChamado": [
+    "Bauducco"
+   ]
   },
   {
    "nome": "Tintas Renner",
@@ -3775,7 +3802,10 @@ window.AF2026 = {
    "y": 2054,
    "cat": "public",
    "icon": "bat_brasil",
-   "iconSize": 90
+   "iconSize": 90,
+   "tambemChamado": [
+    "Bat"
+   ]
   },
   {
    "nome": "Brahma",
@@ -3807,7 +3837,10 @@ window.AF2026 = {
    "y": 1479,
    "cat": "public",
    "icon": "prefeitura_secretaria_educacao",
-   "iconSize": 90
+   "iconSize": 90,
+   "tambemChamado": [
+    "Smed"
+   ]
   },
   {
    "nome": "Estátua de Maurício Sirotsky Sobrinho",
@@ -3850,7 +3883,10 @@ window.AF2026 = {
    "y": 1487,
    "cat": "public",
    "icon": "record_tv",
-   "iconSize": 90
+   "iconSize": 90,
+   "tambemChamado": [
+    "Guaíba Record"
+   ]
   },
   {
    "nome": "Record TV 2",
@@ -3899,7 +3935,12 @@ window.AF2026 = {
    "y": 2504,
    "cat": "public",
    "icon": "sbt",
-   "iconSize": 90
+   "iconSize": 90,
+   "tambemChamado": [
+    "Piquete Grito do Quero-Quero",
+    "Grito do Quero Quero",
+    "Quero-Quero"
+   ]
   }
  ],
  "categories": {
