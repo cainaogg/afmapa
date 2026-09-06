@@ -180,6 +180,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   font-family:'Roboto',sans-serif;cursor:pointer;white-space:nowrap;}
 .atalho:hover{background:var(--ground);}
 .atalho:disabled{opacity:.5;cursor:progress;}
+.atalho.ativo{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
 
 /* menu do hamburguer: tudo que saiu da tela principal entra aqui */
 .menu-list{padding:8px;display:flex;flex-direction:column;}
@@ -1320,7 +1321,12 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   document.getElementById('btnEditarRota').addEventListener('click', expandirRota);
 
   // cancelar a rota tem que apagar a linha e os pinos, nao so fechar o painel
+  // o atalho aceso deixa de fazer sentido assim que a rota some
+  function apagaAtalhoAtivo(){
+    document.querySelectorAll('.atalho.ativo').forEach(b=> b.classList.remove('ativo'));
+  }
   function limparRota(){
+    apagaAtalhoAtivo();
     routeLine.classList.remove('show');
     routeLine.setAttribute('points','');
     rotaTracada = false;
@@ -1660,6 +1666,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     placeCard.style.display = 'none';
     btnClearSearch.style.display = q ? 'flex' : 'none';
     document.getElementById('atalhos').hidden = !!q;
+    if(q) apagaAtalhoAtivo();
     if(!q){ pintaPainelVazio(); return; }
     const found = points.filter(p=>matches(p,q)).slice(0,60);
     found.forEach(p=> searchResults.appendChild(linhaResultado(p)));
@@ -1913,10 +1920,18 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     b.className = 'atalho';
     b.innerHTML = `<span>${a.icone}</span><span>${a.rotulo}</span>`;
     b.addEventListener('click', ()=>{
+      if(b.classList.contains('ativo')){        // segundo toque desliga e apaga a rota
+        limparRota();
+        placeCard.style.display = 'none';
+        showTab('search');
+        return;
+      }
       const achado = maisPerto(a.acha);
       if(!achado){ toast('Não encontrei ' + a.rotulo.toLowerCase() + ' no mapa.'); return; }
       toast(`${a.rotulo} mais perto: ${displayName(achado.p)} · ${Math.round(achado.d * M_POR_UNIDADE)} m`);
       onMapPick(achado.p);
+      apagaAtalhoAtivo();
+      b.classList.add('ativo');
     });
     atalhosEl.appendChild(b);
   });
