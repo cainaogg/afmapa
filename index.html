@@ -63,7 +63,9 @@ svg#map.modo-esquematico .esquematico{display:inline;}
 .sheet{top:10px;left:10px;width:320px;max-height:calc(100vh - 20px);max-height:calc(100dvh - 20px);display:flex;flex-direction:column;overflow:hidden;}
 .sheet.collapsed{display:none;}
 @media (max-width: 720px){
-  .sheet{left:10px;right:10px;width:auto;top:auto;bottom:10px;max-height:66vh;}
+  /* busca no topo (perto da barra de endereco do navegador) e botoes embaixo,
+     onde o polegar alcanca */
+  .sheet{left:10px;right:10px;width:auto;top:10px;bottom:auto;max-height:62vh;}
 }
 .sheet-page{display:none;overflow:auto;flex:1;flex-direction:column;}
 .sheet-page.active{display:flex;}
@@ -112,6 +114,18 @@ svg#map.modo-esquematico .esquematico{display:inline;}
 .trace-btn{padding:11px;border:none;border-radius:8px;cursor:pointer;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:13.5px;font-family:'Roboto',sans-serif;}
 .trace-btn:disabled{opacity:.4;cursor:not-allowed;}
 .gps-btn{padding:9px;border:1px solid var(--line);border-radius:8px;cursor:pointer;background:var(--panel);color:var(--gps);font-weight:600;font-size:12.5px;display:flex;align-items:center;justify-content:center;gap:6px;}
+/* Depois de tracar, o painel encolhe pra uma barra de resumo e devolve a tela pro
+   mapa (mesma ideia do Google Maps). "Editar" traz o editor de paradas de volta. */
+.rota-resumo{display:none;align-items:center;gap:10px;padding:12px 14px;}
+.sheet.rota-pronta .rota-resumo{display:flex;}
+.sheet.rota-pronta .stops-wrap{display:none;}
+.rota-resumo-txt{flex:1;min-width:0;line-height:1.4;}
+.rota-resumo-txt b{display:block;font-size:15px;color:var(--ink);}
+.rota-resumo-txt span{display:block;font-size:11.5px;color:var(--ink-soft);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rota-editar{flex:none;padding:8px 16px;border:1px solid var(--line);border-radius:20px;
+  background:var(--panel);color:var(--accent);font-weight:700;font-size:13px;cursor:pointer;}
+
 .route-info{font-size:12.5px;color:var(--ink-soft);line-height:1.6;padding:0 2px;display:none;}
 .route-info.show{display:block;}
 .route-info b{color:var(--ink);}
@@ -145,9 +159,8 @@ svg#map.modo-esquematico .esquematico{display:inline;}
 .zoom-ctrl button:last-child{border-bottom:none;}
 .gps-fab{width:44px;height:44px;border-radius:50%;border:none;background:var(--panel);box-shadow:var(--shadow);color:var(--gps);font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;}
 @media (max-width: 720px){
-  /* no celular a busca fica embaixo, entao a coluna de botoes vai pro topo direito */
-  .fab-col{top:14px;bottom:auto;gap:9px;}
-  .sheet{max-height:58vh;}
+  /* com a busca no topo, a coluna de botoes volta pro canto inferior direito */
+  .fab-col{bottom:14px;top:auto;gap:9px;}
   /* zoom com dois dedos ja resolve no toque: os botoes +/- so ocupariam espaco */
   .zoom-ctrl{display:none;}
   /* o modo esquematico e ferramenta de conferencia, nao interessa ao visitante no celular */
@@ -212,6 +225,13 @@ svg#map.modo-esquematico .esquematico{display:inline;}
         <button class="gps-btn" id="btnGps">📍 Usar minha localização como partida</button>
         <button class="trace-btn" id="btnTrace" disabled>Traçar rota</button>
         <div class="route-info" id="routeInfo"></div>
+      </div>
+      <div class="rota-resumo" id="rotaResumo">
+        <div class="rota-resumo-txt">
+          <b id="resumoDist"></b>
+          <span id="resumoTrajeto"></span>
+        </div>
+        <button class="rota-editar" id="btnEditarRota">Editar</button>
       </div>
     </div>
   </div>
@@ -721,6 +741,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   function showTab(tab){
     currentTab = tab;
     sheet.classList.remove('collapsed');
+    if(tab !== 'route') sheet.classList.remove('rota-pronta');
     document.querySelectorAll('.sheet-page').forEach(p=>p.classList.toggle('active', p.id==='page-'+tab));
     placeCard.style.display = 'none';
     btnBack.textContent = tab==='search' ? '☰' : '←';
@@ -892,6 +913,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     if(!ok){
       routeLine.classList.remove('show');
       rotaTracada = false;
+      expandirRota();
       info.classList.add('show');
       info.innerHTML = 'Não foi possível calcular a rota entre esses pontos.';
       return;
@@ -902,20 +924,41 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     rotaTracada = true;
     const meters = Math.round(totalDist * 0.1124);
     const minutes = Math.max(1, Math.round(meters/80)); // ~4.8km/h caminhando
+    encolherRota(filled, meters, minutes);
     let stepsHtml = segInfo.map(s=> `<li>${displayName(s.from)} → ${displayName(s.to)}</li>`).join('');
     info.classList.add('show');
     info.innerHTML = `<b>${meters} m</b> · ~${minutes} min a pé<ul class="route-steps">${stepsHtml}</ul>`;
-    // enquadra a rota
+    // enquadra a rota.
+    // Numa tela alta, uma rota larga obriga a sobrar margem: o viewBox acompanha a
+    // proporcao da tela, entao esticar na horizontal estica junto na vertical. Da pra
+    // reduzir a sobra com margem menor e prendendo a vista aos limites do mapa.
     const xs = fullPath.map(p=>p[0]), ys = fullPath.map(p=>p[1]);
-    const pad = 200;
+    const pad = 90;
     const x0=Math.min(...xs)-pad, x1=Math.max(...xs)+pad, y0=Math.min(...ys)-pad, y1=Math.max(...ys)+pad;
     const r0 = svg.getBoundingClientRect(); const prop = r0.height/r0.width || (VB.h/VB.w);
     VB.w = Math.max(x1-x0, 300); VB.h = VB.w*prop;
     if(VB.h < (y1-y0)){ VB.h = y1-y0; VB.w = VB.h/prop; }
     VB.x = (x0+x1)/2 - VB.w/2; VB.y = (y0+y1)/2 - VB.h/2;
+    // se couber dentro do mapa, encosta a vista na area desenhada em vez de
+    // deixar metade da sobra fora dele
+    const MAPA = {x:0, y:698, w:6015, h:2434};
+    if(VB.w <= MAPA.w) VB.x = Math.min(Math.max(VB.x, MAPA.x), MAPA.x + MAPA.w - VB.w);
+    else               VB.x = MAPA.x + MAPA.w/2 - VB.w/2;
+    if(VB.h <= MAPA.h) VB.y = Math.min(Math.max(VB.y, MAPA.y), MAPA.y + MAPA.h - VB.h);
+    else               VB.y = MAPA.y + MAPA.h/2 - VB.h/2;
     applyVB();
   }
   document.getElementById('btnTrace').addEventListener('click', tracarRota);
+
+  // ---- painel compacto depois de tracar (o mapa fica com quase toda a tela) ----
+  function encolherRota(paradas, metros, minutos){
+    document.getElementById('resumoDist').textContent = `${metros} m · ~${minutos} min a pé`;
+    document.getElementById('resumoTrajeto').textContent =
+      paradas.map(displayName).join('  →  ');
+    sheet.classList.add('rota-pronta');
+  }
+  function expandirRota(){ sheet.classList.remove('rota-pronta'); }
+  document.getElementById('btnEditarRota').addEventListener('click', expandirRota);
 
   function pararGps(){
     if(gpsWatchId!=null){ navigator.geolocation.clearWatch(gpsWatchId); gpsWatchId=null; }
@@ -958,7 +1001,9 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     renderStops(); renderStopMarkers(); updateTraceBtn();
     try{ localStorage.setItem('af2026_partida_fixa', cfgPartidaFixa.checked?'1':'0'); }catch(e){}
   }
-  try{ cfgPartidaFixa.checked = localStorage.getItem('af2026_partida_fixa')==='1'; }catch(e){}
+  // padrao: partida fixa na Chama Crioula (o site nasceu pro balcao de informacoes)
+  try{ cfgPartidaFixa.checked = localStorage.getItem('af2026_partida_fixa') !== '0'; }
+  catch(e){ cfgPartidaFixa.checked = true; }
   cfgPartidaFixa.addEventListener('change', ()=>{
     aplicaPartidaFixa();
     toast(cfgPartidaFixa.checked ? 'Partida fixa na Chama Crioula ligada.' : 'Partida fixa desligada.');
@@ -971,7 +1016,9 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     if(off){ pararGps(); gpsPoint=null; drawGpsDot(); }
     try{ localStorage.setItem('af2026_sem_gps', off?'1':'0'); }catch(e){}
   }
-  try{ cfgSemGps.checked = localStorage.getItem('af2026_sem_gps')==='1'; }catch(e){}
+  // padrao: GPS desativado. So liga se a pessoa desmarcar de proposito ('0').
+  try{ cfgSemGps.checked = localStorage.getItem('af2026_sem_gps') !== '0'; }
+  catch(e){ cfgSemGps.checked = true; }
   cfgSemGps.addEventListener('change', ()=>{
     aplicaGps();
     toast(cfgSemGps.checked ? 'GPS desativado.' : 'GPS reativado.');
