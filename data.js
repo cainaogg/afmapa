@@ -7,37 +7,48 @@
 //   Sem_Nome_12_2           -> rua sem nome numero 12, no 2
 //   Praca_*, Portico_*, rotula_* -> lugares, nao vias
 //
+// CAMPO resp: nome do responsavel pelo piquete, transcrito da listagem oficial
+// (PDF de 05/09/2026, colunas lote | NomeEntidade | NomeResponsavel). O nome da
+// entidade foi conferido contra o nome que ja tinhamos: 178 de 182 batem exatamente.
+// Os lotes 120, 121 e 230 ficaram DE FORA porque o nome do piquete diverge entre as
+// duas fontes — nao da pra saber a quem pertence o responsavel sem resolver isso.
+// Faltam 54 lotes (R a Z + o 13): a listagem que recebemos esta incompleta.
 window.AF2026 = {
  "lots": [
   {
    "num": 1,
    "nome": "Campo A Fora",
    "x": 3218,
-   "y": 981
+   "y": 981,
+   "resp": "Cleiton Silvestre Munhos de Freitas"
   },
   {
    "num": 2,
    "nome": "Presilha Crioula",
    "x": 3312,
-   "y": 981
+   "y": 981,
+   "resp": "Valdecir de Oliveira Machado"
   },
   {
    "num": 3,
    "nome": "Os Oliveiras",
    "x": 3401,
-   "y": 977
+   "y": 977,
+   "resp": "Thiago Oliveira Alves"
   },
   {
    "num": 4,
    "nome": "Amigos Do Rio Grande",
    "x": 3491,
-   "y": 976
+   "y": 976,
+   "resp": "João Luis Soares Cardoso"
   },
   {
    "num": 5,
    "nome": "Estância Do Titi Véio",
    "x": 3579,
-   "y": 974
+   "y": 974,
+   "resp": "Cosme da Silveira Caetano"
   },
   {
    "num": 6,
@@ -49,7 +60,8 @@ window.AF2026 = {
    "num": 7,
    "nome": "Os Xucros",
    "x": 3822,
-   "y": 970
+   "y": 970,
+   "resp": "Valter José dos Santos"
   },
   {
    "num": 8,
@@ -67,19 +79,22 @@ window.AF2026 = {
    "num": 10,
    "nome": "20 De Setembro",
    "x": 4066,
-   "y": 971
+   "y": 971,
+   "resp": "Fernanda Arieta Brasil da Silva"
   },
   {
    "num": 11,
    "nome": "Herança Rio-Grandense",
    "x": 4146,
-   "y": 971
+   "y": 971,
+   "resp": "Nei de Souza Barbosa"
   },
   {
    "num": 12,
    "nome": "Estância De Viamão",
    "x": 4225,
-   "y": 971
+   "y": 971,
+   "resp": "João Pereira de Paiva"
   },
   {
    "num": 13,
@@ -97,19 +112,22 @@ window.AF2026 = {
    "num": 15,
    "nome": "Do Esgualepado",
    "x": 4463,
-   "y": 971
+   "y": 971,
+   "resp": "Ademir Feijó Dutra"
   },
   {
    "num": 16,
    "nome": "Lenço Colorado",
    "x": 4542,
-   "y": 971
+   "y": 971,
+   "resp": "João Pedro Rott"
   },
   {
    "num": 17,
    "nome": "Botoneira Crioula",
    "x": 4621,
-   "y": 971
+   "y": 971,
+   "resp": "Elizete Beatriz Glória Gonçalves"
   },
   {
    "num": 18,
@@ -121,13 +139,15 @@ window.AF2026 = {
    "num": 19,
    "nome": "Centauros Do Pampa",
    "x": 4783,
-   "y": 966
+   "y": 966,
+   "resp": "Edinei Silveira Borges"
   },
   {
    "num": 20,
    "nome": "Bancários",
    "x": 4870,
-   "y": 964
+   "y": 964,
+   "resp": "Edson Ramos da Rocha"
   },
   {
    "num": 21,
@@ -139,97 +159,113 @@ window.AF2026 = {
    "num": 22,
    "nome": "Morada Campeira",
    "x": 3256,
-   "y": 1200
+   "y": 1200,
+   "resp": "Rosa Maria Dorneles Marques e Jessica Rolim Machado"
   },
   {
    "num": 23,
    "nome": "Família Moura",
    "x": 3258,
-   "y": 1286
+   "y": 1286,
+   "resp": "Elizandro de Oliveira Moura"
   },
   {
    "num": 24,
    "nome": "Freitas Brasil",
    "x": 3257,
-   "y": 1372
+   "y": 1372,
+   "resp": "Luiz Henrique Freitas Brasil"
   },
   {
    "num": 25,
    "nome": "Ferro Em Brasa",
    "x": 3257,
-   "y": 1456
+   "y": 1456,
+   "resp": "Fancler Thiago Araldi"
   },
   {
    "num": 26,
    "nome": "Galpão Querência Dos Machados",
    "x": 3257,
-   "y": 1548
+   "y": 1548,
+   "resp": "Milton dos Santos Machado"
   },
   {
    "num": 27,
    "nome": "Entre Amigos",
    "x": 3256,
-   "y": 1630
+   "y": 1630,
+   "resp": "João Lucas Weingaertner de Carvalho"
   },
   {
    "num": 28,
    "nome": "Para Boi",
    "x": 3342,
-   "y": 1630
+   "y": 1630,
+   "resp": "Eloi Pereira de Paula"
   },
   {
    "num": 29,
    "nome": "Quatro Cantos Do Rio Grande",
    "x": 3342,
-   "y": 1545
+   "y": 1545,
+   "resp": "Larry Machado Rocha"
   },
   {
    "num": 30,
    "nome": "24 Irmãos",
    "x": 3342,
-   "y": 1459
+   "y": 1459,
+   "resp": "João Batista Machado"
   },
   {
    "num": 31,
    "nome": "Gaudérios Do Asfalto",
    "x": 3343,
-   "y": 1372
+   "y": 1372,
+   "resp": "Alcindo Dedavid"
   },
   {
    "num": 32,
    "nome": "Inhanduí",
    "x": 3345,
-   "y": 1289
+   "y": 1289,
+   "resp": "Marco Aurélio Ricardo"
   },
   {
    "num": 33,
    "nome": "Elo Colorado",
    "x": 3345,
-   "y": 1201
+   "y": 1201,
+   "resp": "Maximiiano Vieira dos Santos"
   },
   {
    "num": 34,
    "nome": "Oitavados No Balcão",
    "x": 3344,
-   "y": 1112
+   "y": 1112,
+   "resp": "João Batista Rogoski"
   },
   {
    "num": 35,
    "nome": "Gamboa",
    "x": 3470,
-   "y": 1115
+   "y": 1115,
+   "resp": "Roger Gamboa da Rosa"
   },
   {
    "num": 36,
    "nome": "Estância Das Águas",
    "x": 3471,
-   "y": 1203
+   "y": 1203,
+   "resp": "Lidson Rodrigues Bassani"
   },
   {
    "num": 37,
    "nome": "Chama Nativa - Funcionários GHC",
    "x": 3474,
-   "y": 1332
+   "y": 1332,
+   "resp": "Vitor Hugo Recova"
   },
   {
    "num": 38,
@@ -241,49 +277,57 @@ window.AF2026 = {
    "num": 39,
    "nome": "Estadual Galponeiro Do Arambaré",
    "x": 3471,
-   "y": 1502
+   "y": 1502,
+   "resp": "Armando Porciúncula Pereira"
   },
   {
    "num": 40,
    "nome": "Cabo Toco - Sindisaúde",
    "x": 3474,
-   "y": 1588
+   "y": 1588,
+   "resp": "Carmen Beatriz Machado Brião"
   },
   {
    "num": 41,
    "nome": "Cerca Véia",
    "x": 3563,
-   "y": 1112
+   "y": 1112,
+   "resp": "Claaudiomiro Duarte da Silva"
   },
   {
    "num": 42,
    "nome": "Ninho Do Sabiá",
    "x": 3696,
-   "y": 1202
+   "y": 1202,
+   "resp": "Gisele Rodrigues Correa"
   },
   {
    "num": 43,
    "nome": "Amigos Do Sorro",
    "x": 3691,
-   "y": 1110
+   "y": 1110,
+   "resp": "Gisele Santos Nunes"
   },
   {
    "num": 44,
    "nome": "Aporreados Do Partenon",
    "x": 3780,
-   "y": 1111
+   "y": 1111,
+   "resp": "Fabio Almeida"
   },
   {
    "num": 45,
    "nome": "Aba Larga",
    "x": 3780,
-   "y": 1202
+   "y": 1202,
+   "resp": "João Luiz Laureano"
   },
   {
    "num": 46,
    "nome": "Amigos Da Tradição",
    "x": 3907,
-   "y": 1201
+   "y": 1201,
+   "resp": "Rogério de Andrade Fonseca"
   },
   {
    "num": 47,
@@ -301,31 +345,36 @@ window.AF2026 = {
    "num": 49,
    "nome": "Maragatos Da Zona Sul",
    "x": 3998,
-   "y": 1196
+   "y": 1196,
+   "resp": "Oberon Dalbar Silva dos Santos"
   },
   {
    "num": 50,
    "nome": "Desgarrados",
    "x": 4126,
-   "y": 1192
+   "y": 1192,
+   "resp": "Gladimir Rodrigues da Rosa"
   },
   {
    "num": 51,
    "nome": "Pantanal",
    "x": 4123,
-   "y": 1105
+   "y": 1105,
+   "resp": "Solange Dias Teixeira"
   },
   {
    "num": 52,
    "nome": "Desgarrados Do Rio Grande Os Herdeiros De Bento",
    "x": 4328,
-   "y": 1103
+   "y": 1103,
+   "resp": "Diones Gonçalves de Oliveira"
   },
   {
    "num": 53,
    "nome": "Amizade Campeira",
    "x": 4330,
-   "y": 1191
+   "y": 1191,
+   "resp": "José Roberto Araujo"
   },
   {
    "num": 54,
@@ -337,13 +386,15 @@ window.AF2026 = {
    "num": 55,
    "nome": "Amigos Do Negrinho Do Pastoreio",
    "x": 4331,
-   "y": 1361
+   "y": 1361,
+   "resp": "Juliano Bragatto Abadie"
   },
   {
    "num": 56,
    "nome": "Bate Casco",
    "x": 4338,
-   "y": 1450
+   "y": 1450,
+   "resp": "Ademir Luiz Branco Abreu"
   },
   {
    "num": 57,
@@ -355,19 +406,22 @@ window.AF2026 = {
    "num": 58,
    "nome": "Estrela Dalva - Mangueira De Pedra",
    "x": 4336,
-   "y": 1618
+   "y": 1618,
+   "resp": "Adão Fontoura Padilha"
   },
   {
    "num": 59,
    "nome": "Las Piedras",
    "x": 4335,
-   "y": 1708
+   "y": 1708,
+   "resp": "Fábio Mendes Toledo"
   },
   {
    "num": 60,
    "nome": "Louco De Bueno",
    "x": 4424,
-   "y": 1706
+   "y": 1706,
+   "resp": "Vanderlei Tomchuk Ávila"
   },
   {
    "num": 61,
@@ -379,19 +433,22 @@ window.AF2026 = {
    "num": 62,
    "nome": "Instituto Beneficente Cavaleiros Da Tradição - IBCT",
    "x": 4427,
-   "y": 1535
+   "y": 1535,
+   "resp": "Valmir Coelho Mendonça"
   },
   {
    "num": 63,
    "nome": "Guerreiros Da Zona Norte",
    "x": 4426,
-   "y": 1450
+   "y": 1450,
+   "resp": "Eros Roberto Silva dos Santos"
   },
   {
    "num": 64,
    "nome": "Guerreiros Do Sul",
    "x": 4425,
-   "y": 1361
+   "y": 1361,
+   "resp": "Gabriela Ribeiro Teixeira"
   },
   {
    "num": 65,
@@ -409,19 +466,22 @@ window.AF2026 = {
    "num": 67,
    "nome": "Prijú",
    "x": 4418,
-   "y": 1102
+   "y": 1102,
+   "resp": "Airton José Mataczinski"
   },
   {
    "num": 68,
    "nome": "Lendas Do Sul",
    "x": 4554,
-   "y": 1106
+   "y": 1106,
+   "resp": "Gilberto da Silva Spíndola"
   },
   {
    "num": 69,
    "nome": "Iguaria Campeira",
    "x": 4552,
-   "y": 1189
+   "y": 1189,
+   "resp": "Átila Breitenbach da Silva"
   },
   {
    "num": 70,
@@ -433,19 +493,22 @@ window.AF2026 = {
    "num": 71,
    "nome": "Estância De Maragatos",
    "x": 4553,
-   "y": 1358
+   "y": 1358,
+   "resp": "Vanderlei Tomchuk Avila"
   },
   {
    "num": 72,
    "nome": "Chimangos",
    "x": 4556,
-   "y": 1450
+   "y": 1450,
+   "resp": "Suzete da Silva Fernandes"
   },
   {
    "num": 73,
    "nome": "Cusco Amigo",
    "x": 4553,
-   "y": 1533
+   "y": 1533,
+   "resp": "Carlos Eduardo Pacheco"
   },
   {
    "num": 74,
@@ -469,25 +532,29 @@ window.AF2026 = {
    "num": 77,
    "nome": "Lida De Campo",
    "x": 4643,
-   "y": 1621
+   "y": 1621,
+   "resp": "Vladimir Jardim"
   },
   {
    "num": 78,
    "nome": "Estância Velho Barroso",
    "x": 4646,
-   "y": 1534
+   "y": 1534,
+   "resp": "Jaime Flores Dutra"
   },
   {
    "num": 79,
    "nome": "Amigos Do Tio Flor",
    "x": 4645,
-   "y": 1450
+   "y": 1450,
+   "resp": "Leonardo dos Santos Guterres"
   },
   {
    "num": 80,
    "nome": "Perreco",
    "x": 4641,
-   "y": 1361
+   "y": 1361,
+   "resp": "Juares da Silva Borges"
   },
   {
    "num": 81,
@@ -499,7 +566,8 @@ window.AF2026 = {
    "num": 82,
    "nome": "Amigos De São Borja",
    "x": 4645,
-   "y": 1189
+   "y": 1189,
+   "resp": "Wilson Roque Campos dos Santos"
   },
   {
    "num": 83,
@@ -511,31 +579,36 @@ window.AF2026 = {
    "num": 84,
    "nome": "Queixo Duro",
    "x": 4767,
-   "y": 1104
+   "y": 1104,
+   "resp": "Edson Tadeu de Oliveira"
   },
   {
    "num": 85,
    "nome": "Origem Campeira",
    "x": 4765,
-   "y": 1190
+   "y": 1190,
+   "resp": "Vinicius da Luz Naigles"
   },
   {
    "num": 86,
    "nome": "Fraternidade Gaúcha - Grande Oriente",
    "x": 4765,
-   "y": 1273
+   "y": 1273,
+   "resp": "Stives Alberto do Amaral Silveira"
   },
   {
    "num": 87,
    "nome": "A Ferro E Fogo",
    "x": 4766,
-   "y": 1359
+   "y": 1359,
+   "resp": "Carlos Rogério Maduré Souza"
   },
   {
    "num": 88,
    "nome": "Dos Borges",
    "x": 4766,
-   "y": 1443
+   "y": 1443,
+   "resp": "João Batista dos Santos Borges"
   },
   {
    "num": 89,
@@ -547,25 +620,29 @@ window.AF2026 = {
    "num": 90,
    "nome": "Campo Novo",
    "x": 4761,
-   "y": 1620
+   "y": 1620,
+   "resp": "Conceição Vieira Prestes"
   },
   {
    "num": 91,
    "nome": "Mandruva Verde",
    "x": 4767,
-   "y": 1708
+   "y": 1708,
+   "resp": "Paulo Reis Figini"
   },
   {
    "num": 92,
    "nome": "Barraca Armada",
    "x": 4860,
-   "y": 1708
+   "y": 1708,
+   "resp": "Paulo Roberto Ramos dos Santos"
   },
   {
    "num": 93,
    "nome": "Dos Oliveiras",
    "x": 4858,
-   "y": 1619
+   "y": 1619,
+   "resp": "Janaina Duarte de Oliveira"
   },
   {
    "num": 94,
@@ -577,19 +654,22 @@ window.AF2026 = {
    "num": 95,
    "nome": "João Bombacha",
    "x": 4859,
-   "y": 1443
+   "y": 1443,
+   "resp": "João Adair Bremm Balbueno"
   },
   {
    "num": 96,
    "nome": "Amigos Dos Martins",
    "x": 4859,
-   "y": 1359
+   "y": 1359,
+   "resp": "Janaina Rodrigues"
   },
   {
    "num": 97,
    "nome": "Fundação São João",
    "x": 4858,
-   "y": 1273
+   "y": 1273,
+   "resp": "Maxoel Bastos"
   },
   {
    "num": 98,
@@ -601,7 +681,8 @@ window.AF2026 = {
    "num": 99,
    "nome": "Cabeça Preta",
    "x": 4857,
-   "y": 1104
+   "y": 1104,
+   "resp": "Enio Luiz Araujo Silva"
   },
   {
    "num": 100,
@@ -613,13 +694,15 @@ window.AF2026 = {
    "num": 101,
    "nome": "Desgarrados Da Cavalhada",
    "x": 4983,
-   "y": 1154
+   "y": 1154,
+   "resp": "André Viesseri"
   },
   {
    "num": 102,
    "nome": "Grupo Arte Nativas Vertente Missioneira",
    "x": 4983,
-   "y": 1251
+   "y": 1251,
+   "resp": "Ereci Celeste Farias Barcellos"
   },
   {
    "num": 103,
@@ -631,13 +714,15 @@ window.AF2026 = {
    "num": 104,
    "nome": "Alegretense",
    "x": 4987,
-   "y": 1428
+   "y": 1428,
+   "resp": "Rafael Freitas dos Santos"
   },
   {
    "num": 105,
    "nome": "Querência Amiga",
    "x": 4985,
-   "y": 1519
+   "y": 1519,
+   "resp": "Cláudio Tione Sherer"
   },
   {
    "num": 106,
@@ -649,31 +734,36 @@ window.AF2026 = {
    "num": 107,
    "nome": "Camboatá",
    "x": 4986,
-   "y": 1694
+   "y": 1694,
+   "resp": "Celso Luis Pacheco Marques"
   },
   {
    "num": 108,
    "nome": "Charla De Galpão",
    "x": 4986,
-   "y": 1863
+   "y": 1863,
+   "resp": "Danilo Bianchini"
   },
   {
    "num": 109,
    "nome": "Orçamento Participativo",
    "x": 4986,
-   "y": 1952
+   "y": 1952,
+   "resp": "Jeferson Dias da Fonseca"
   },
   {
    "num": 110,
    "nome": "Desgarrado Do Ipiranga",
    "x": 4986,
-   "y": 2040
+   "y": 2040,
+   "resp": "Evandro Ftaporti"
   },
   {
    "num": 111,
    "nome": "Panela De Gancho",
    "x": 4986,
-   "y": 2131
+   "y": 2131,
+   "resp": "Eurico Xavier dos Santos"
   },
   {
    "num": 112,
@@ -685,25 +775,29 @@ window.AF2026 = {
    "num": 113,
    "nome": "Querencia Dos Amigos",
    "x": 4986,
-   "y": 2308
+   "y": 2308,
+   "resp": "Salete Ozório Santos"
   },
   {
    "num": 114,
    "nome": "Manotaço",
    "x": 4987,
-   "y": 2391
+   "y": 2391,
+   "resp": "Cristiano Campos Cardoso"
   },
   {
    "num": 115,
    "nome": "Fronteira Seca",
    "x": 1292,
-   "y": 1370
+   "y": 1370,
+   "resp": "Lauro Kelboucas Pacheco"
   },
   {
    "num": 116,
    "nome": "João Vitorino",
    "x": 4987,
-   "y": 2477
+   "y": 2477,
+   "resp": "Paulo Juares Vicente"
   },
   {
    "num": 117,
@@ -721,7 +815,8 @@ window.AF2026 = {
    "num": 119,
    "nome": "Galpão Fagundes",
    "x": 4853,
-   "y": 2202
+   "y": 2202,
+   "resp": "Antonio Everaldo Fagundes de Almeida"
   },
   {
    "num": 120,
@@ -739,19 +834,22 @@ window.AF2026 = {
    "num": 122,
    "nome": "Amigos Do Sul",
    "x": 4854,
-   "y": 1945
+   "y": 1945,
+   "resp": "Dérico Eduardo Teixeira Barpp"
   },
   {
    "num": 123,
    "nome": "Espora De Prata",
    "x": 4853,
-   "y": 1858
+   "y": 1858,
+   "resp": "Eduardo Medeiros Floriano"
   },
   {
    "num": 124,
    "nome": "Missioneiro",
    "x": 4760,
-   "y": 1858
+   "y": 1858,
+   "resp": "Wilson Ricardo Pinto de Andrade"
   },
   {
    "num": 125,
@@ -763,13 +861,15 @@ window.AF2026 = {
    "num": 126,
    "nome": "Portal Do Rio Grande",
    "x": 4761,
-   "y": 2030
+   "y": 2030,
+   "resp": "Ricardo Goulart"
   },
   {
    "num": 127,
    "nome": "Do Grosso",
    "x": 4760,
-   "y": 2116
+   "y": 2116,
+   "resp": "Aldori dos Santos Oliveira"
   },
   {
    "num": 128,
@@ -781,31 +881,36 @@ window.AF2026 = {
    "num": 129,
    "nome": "Clube De Truco Pitoco",
    "x": 4764,
-   "y": 2289
+   "y": 2289,
+   "resp": "Eduardo Jesus Martins"
   },
   {
    "num": 130,
    "nome": "Gadanha",
    "x": 4762,
-   "y": 2376
+   "y": 2376,
+   "resp": "Maria Aparecida Castilhos Luge"
   },
   {
    "num": 131,
    "nome": "Desgarrados Do Partenon",
    "x": 4766,
-   "y": 2463
+   "y": 2463,
+   "resp": "Izidoro Roque Schwarzer"
   },
   {
    "num": 132,
    "nome": "Monte Xiru",
    "x": 4641,
-   "y": 2464
+   "y": 2464,
+   "resp": "Leonardo da Silva Machado"
   },
   {
    "num": 133,
    "nome": "Marco Antonio Mezenga",
    "x": 4638,
-   "y": 2376
+   "y": 2376,
+   "resp": "Luciano Viana de Negreiros"
   },
   {
    "num": 134,
@@ -817,55 +922,64 @@ window.AF2026 = {
    "num": 135,
    "nome": "Laços De Amizade",
    "x": 4636,
-   "y": 2207
+   "y": 2207,
+   "resp": "Milton da Silva Matos"
   },
   {
    "num": 136,
    "nome": "Acampamento Sinal Marca E Tarca",
    "x": 4634,
-   "y": 2120
+   "y": 2120,
+   "resp": "Odilson Fernandes"
   },
   {
    "num": 137,
    "nome": "Motoqueiros Do Pampa",
    "x": 4636,
-   "y": 2033
+   "y": 2033,
+   "resp": "Adriana Freitas Ferreira"
   },
   {
    "num": 138,
    "nome": "Estância Do Guerreiro",
    "x": 4637,
-   "y": 1948
+   "y": 1948,
+   "resp": "Carina Meira Clave"
   },
   {
    "num": 139,
    "nome": "Chama Crioula",
    "x": 4637,
-   "y": 1862
+   "y": 1862,
+   "resp": "Alberto Silva Flores"
   },
   {
    "num": 140,
    "nome": "Amigos De Viamão",
    "x": 4549,
-   "y": 1862
+   "y": 1862,
+   "resp": "Armindo Dreier"
   },
   {
    "num": 141,
    "nome": "Manilha De Espada",
    "x": 4546,
-   "y": 1946
+   "y": 1946,
+   "resp": "Carina Meira Clave"
   },
   {
    "num": 142,
    "nome": "É O Tchê",
    "x": 4548,
-   "y": 2033
+   "y": 2033,
+   "resp": "Jurema Oliveira da Rosa"
   },
   {
    "num": 143,
    "nome": "Lanceiros De Prata",
    "x": 4550,
-   "y": 2119
+   "y": 2119,
+   "resp": "Iguatemi Viergas Coimbra"
   },
   {
    "num": 144,
@@ -877,7 +991,8 @@ window.AF2026 = {
    "num": 145,
    "nome": "Flores Da Cunha",
    "x": 4550,
-   "y": 2292
+   "y": 2292,
+   "resp": "Edenir Dias Rodrigues"
   },
   {
    "num": 146,
@@ -889,13 +1004,15 @@ window.AF2026 = {
    "num": 147,
    "nome": "Laços De Sangue",
    "x": 4549,
-   "y": 2465
+   "y": 2465,
+   "resp": "Odorico Luiz Peres de Oliveira"
   },
   {
    "num": 148,
    "nome": "Grito Do Quero Quero - SBT",
    "x": 4406,
-   "y": 2380
+   "y": 2380,
+   "resp": "Lidio Cesar Carvalho Marques"
   },
   {
    "num": 149,
@@ -907,67 +1024,78 @@ window.AF2026 = {
    "num": 150,
    "nome": "Mango E Maneia",
    "x": 4407,
-   "y": 2208
+   "y": 2208,
+   "resp": "Juliano Monteiro da Silva"
   },
   {
    "num": 151,
    "nome": "Familia E Tradição",
    "x": 4409,
-   "y": 2124
+   "y": 2124,
+   "resp": "Valderson Lemes Goulart"
   },
   {
    "num": 152,
    "nome": "Guardiões Do Rio Grande",
    "x": 4404,
-   "y": 2033
+   "y": 2033,
+   "resp": "Claudia Regina Pinto Ribeiro"
   },
   {
    "num": 153,
    "nome": "OAB",
    "x": 4251,
-   "y": 2126
+   "y": 2126,
+   "resp": "Roberta Schaun da Silva"
   },
   {
    "num": 154,
    "nome": "OAB - Oabprev",
    "x": 4252,
-   "y": 2212
+   "y": 2212,
+   "resp": "Regina Pereira Soares"
   },
   {
    "num": 155,
    "nome": "Galpão De Pau A Pique",
    "x": 4254,
-   "y": 2301
+   "y": 2301,
+   "resp": "Daniela de Souza Ramos"
   },
   {
    "num": 156,
    "nome": "Herdeiros Dos Quatro Cantos Do Rgs",
    "x": 4255,
-   "y": 2392
+   "y": 2392,
+   "resp": "José Gomes Maciel"
   },
   {
    "num": 157,
    "nome": "Meu Velho Pai",
    "x": 4253,
-   "y": 2503
+   "y": 2503,
+   "resp": "Carlos Valmor Nunes Junior"
   },
   {
    "num": 158,
    "nome": "Guardas Da Tradição",
    "x": 4170,
-   "y": 2411
+   "y": 2411,
+   "resp": "Rodrigo Batista"
   },
   {
    "num": 159,
    "nome": "Lida Campeira",
    "x": 4081,
-   "y": 2380
+   "y": 2380,
+   "resp": "Cleber Oliveira de Souza"
   },
   {
    "num": 160,
    "nome": "Porteira Aberta",
    "x": 3995,
-   "y": 2352
+   "y": 2352,
+   "resp": "Patrícia da Silva Goulart"
   },
   {
    "num": 161,
@@ -985,7 +1113,8 @@ window.AF2026 = {
    "num": 163,
    "nome": "Herança Farrapa",
    "x": 3994,
-   "y": 2220
+   "y": 2220,
+   "resp": "Wilson Godoi"
   },
   {
    "num": 164,
@@ -997,55 +1126,64 @@ window.AF2026 = {
    "num": 165,
    "nome": "Mangaço",
    "x": 3816,
-   "y": 2221
+   "y": 2221,
+   "resp": "Basilio dos Santos Borges"
   },
   {
    "num": 166,
    "nome": "Adaga De Prata",
    "x": 3716,
-   "y": 2143
+   "y": 2143,
+   "resp": "Rogério Hochmuller de Araújo"
   },
   {
    "num": 167,
    "nome": "Corretores Da Tradição",
    "x": 3707,
-   "y": 2233
+   "y": 2233,
+   "resp": "Luis Carlos da Matta"
   },
   {
    "num": 168,
    "nome": "Marca Gaucha ( Banrisul )",
    "x": 3539,
-   "y": 2128
+   "y": 2128,
+   "resp": "João Carlos Schmitz Urbanetto"
   },
   {
    "num": 169,
    "nome": "Morro Da Tapera - Asj - RS",
    "x": 3451,
-   "y": 2103
+   "y": 2103,
+   "resp": "Paulo Sebastião Gonçalves Olympio"
   },
   {
    "num": 170,
    "nome": "Mala De Garupa - Grande Loja Maçônica",
    "x": 3367,
-   "y": 2080
+   "y": 2080,
+   "resp": "Aguinaldo Ferreira"
   },
   {
    "num": 171,
    "nome": "Herança Pampeana",
    "x": 3280,
-   "y": 2064
+   "y": 2064,
+   "resp": "Lucas Saldanha"
   },
   {
    "num": 172,
    "nome": "Fundação Assefaz/rs",
    "x": 3199,
-   "y": 2039
+   "y": 2039,
+   "resp": "Janaina Lopes da Silva"
   },
   {
    "num": 173,
    "nome": "Amigos Do Sul",
    "x": 3105,
-   "y": 2011
+   "y": 2011,
+   "resp": "Edison Braz Duarte"
   },
   {
    "num": 174,
@@ -1057,31 +1195,36 @@ window.AF2026 = {
    "num": 175,
    "nome": "Amigos Da Estância",
    "x": 3917,
-   "y": 2487
+   "y": 2487,
+   "resp": "Cláudio André Martins da Conceição"
   },
   {
    "num": 176,
    "nome": "A Tradicionalista",
    "x": 3826,
-   "y": 2444
+   "y": 2444,
+   "resp": "Maristela Moraes"
   },
   {
    "num": 177,
    "nome": "Galpão Da Querência",
    "x": 3735,
-   "y": 2423
+   "y": 2423,
+   "resp": "Ernane Goularte da Silveira"
   },
   {
    "num": 178,
    "nome": "Estrela",
    "x": 3646,
-   "y": 2404
+   "y": 2404,
+   "resp": "Elmo Antonio Amaral Veiga"
   },
   {
    "num": 179,
    "nome": "Chilena De Ouro",
    "x": 3655,
-   "y": 2526
+   "y": 2526,
+   "resp": "Argeu Lucas Junior"
   },
   {
    "num": 180,
@@ -1099,7 +1242,8 @@ window.AF2026 = {
    "num": 182,
    "nome": "Grupo De Tradições E Folclore Os Tapeyaras",
    "x": 3917,
-   "y": 2576
+   "y": 2576,
+   "resp": "Wagner Agne Nunes"
   },
   {
    "num": 183,
@@ -1111,13 +1255,15 @@ window.AF2026 = {
    "num": 184,
    "nome": "Descendência Caudilha",
    "x": 3350,
-   "y": 2314
+   "y": 2314,
+   "resp": "Luis Alberto Gomes Medeiros"
   },
   {
    "num": 185,
    "nome": "Gonçalves",
    "x": 3260,
-   "y": 2312
+   "y": 2312,
+   "resp": "Jonas Joacir Gonçalves"
   },
   {
    "num": 186,
@@ -1129,7 +1275,8 @@ window.AF2026 = {
    "num": 187,
    "nome": "Galponeiros Do Harmonia",
    "x": 3090,
-   "y": 2304
+   "y": 2304,
+   "resp": "João Luis Muniz de Freitas"
   },
   {
    "num": 188,
@@ -1141,7 +1288,8 @@ window.AF2026 = {
    "num": 189,
    "nome": "Gaudérios Da Harmonia",
    "x": 3434,
-   "y": 2545
+   "y": 2545,
+   "resp": "Luis Antônio da Costa"
   },
   {
    "num": 190,
@@ -1165,7 +1313,8 @@ window.AF2026 = {
    "num": 193,
    "nome": "Gaudérios Da Saúde",
    "x": 3009,
-   "y": 2526
+   "y": 2526,
+   "resp": "Josecler Rodrigues Garroni"
   },
   {
    "num": 194,
@@ -1177,55 +1326,64 @@ window.AF2026 = {
    "num": 195,
    "nome": "Pêlo Escuro",
    "x": 2244,
-   "y": 2266
+   "y": 2266,
+   "resp": "Naiara Rodrigues Silveira Lacerda"
   },
   {
    "num": 196,
    "nome": "35 Ctg",
    "x": 2145,
-   "y": 2170
+   "y": 2170,
+   "resp": "Henrique Arruda Rodrigues"
   },
   {
    "num": 197,
    "nome": "Estrela Gaudéria",
    "x": 4249,
-   "y": 2787
+   "y": 2787,
+   "resp": "Luiz Cláudio Nunes Knierim"
   },
   {
    "num": 198,
    "nome": "Flor E Truco",
    "x": 4148,
-   "y": 2760
+   "y": 2760,
+   "resp": "Edison Cuti Fontoura"
   },
   {
    "num": 199,
    "nome": "Estância Da Figueira",
    "x": 4060,
-   "y": 2747
+   "y": 2747,
+   "resp": "Eduardo Alberto Schaeffer"
   },
   {
    "num": 200,
    "nome": "Gaudérios Da Zona Sul",
    "x": 3970,
-   "y": 2732
+   "y": 2732,
+   "resp": "João Luiz Rangel"
   },
   {
    "num": 201,
    "nome": "Jp De Tradição",
    "x": 3879,
-   "y": 2735
+   "y": 2735,
+   "resp": "Eloir Lourenço Padilha"
   },
   {
    "num": 202,
    "nome": "Chimango",
    "x": 3790,
-   "y": 2742
+   "y": 2742,
+   "resp": "Jorge Luiz da Silva Carrão"
   },
   {
    "num": 203,
    "nome": "Marca Gaúcha",
    "x": 3481,
-   "y": 2755
+   "y": 2755,
+   "resp": "Moacir Honorival Machado Morais"
   },
   {
    "num": 204,
@@ -1237,31 +1395,36 @@ window.AF2026 = {
    "num": 205,
    "nome": "Estância Dos Amigos",
    "x": 3309,
-   "y": 2740
+   "y": 2740,
+   "resp": "Cirilo Dutra Barbosa"
   },
   {
    "num": 206,
    "nome": "Galpão Dos Amigos",
    "x": 3225,
-   "y": 2739
+   "y": 2739,
+   "resp": "Antonio Marcelo Rodrigues Meyer"
   },
   {
    "num": 207,
    "nome": "Querência Do Peão",
    "x": 3145,
-   "y": 2735
+   "y": 2735,
+   "resp": "Fabiano Maestri Soares"
   },
   {
    "num": 208,
    "nome": "30 De Abril",
    "x": 3067,
-   "y": 2733
+   "y": 2733,
+   "resp": "Regis Andrigo Lima"
   },
   {
    "num": 209,
    "nome": "Da Cavalhada",
    "x": 2992,
-   "y": 2724
+   "y": 2724,
+   "resp": "Carlos André Vega"
   },
   {
    "num": 210,
@@ -1273,19 +1436,22 @@ window.AF2026 = {
    "num": 211,
    "nome": "Herdeiros Da Fronteira",
    "x": 2838,
-   "y": 2718
+   "y": 2718,
+   "resp": "Vilson Dornelles Serra"
   },
   {
    "num": 212,
    "nome": "Ponche Verde",
    "x": 2759,
-   "y": 2717
+   "y": 2717,
+   "resp": "Aluizio Silva da Rosa"
   },
   {
    "num": 213,
    "nome": "Eptche",
    "x": 2679,
-   "y": 2717
+   "y": 2717,
+   "resp": "Diego da Silva Marques"
   },
   {
    "num": 214,
@@ -1297,13 +1463,15 @@ window.AF2026 = {
    "num": 215,
    "nome": "Liberdade",
    "x": 2513,
-   "y": 2716
+   "y": 2716,
+   "resp": "Tiago Amaral Marquês"
   },
   {
    "num": 216,
    "nome": "Paleteada",
    "x": 2429,
-   "y": 2595
+   "y": 2595,
+   "resp": "Wagner Dutra Simões"
   },
   {
    "num": 217,
@@ -1315,19 +1483,22 @@ window.AF2026 = {
    "num": 218,
    "nome": "Fazendo Tubiano",
    "x": 2432,
-   "y": 2788
+   "y": 2788,
+   "resp": "Geraldo da Silva"
   },
   {
    "num": 219,
    "nome": "Agrupamento Crioulo Hélio Barbachan",
    "x": 2301,
-   "y": 2579
+   "y": 2579,
+   "resp": "Rene Barbachan"
   },
   {
    "num": 220,
    "nome": "Desgarrados Do Pago",
    "x": 2301,
-   "y": 2700
+   "y": 2700,
+   "resp": "Gelson dos Santos Ramos"
   },
   {
    "num": 221,
@@ -1339,43 +1510,50 @@ window.AF2026 = {
    "num": 222,
    "nome": "Apaysanados",
    "x": 2216,
-   "y": 2784
+   "y": 2784,
+   "resp": "Claudio Marques Ourique"
   },
   {
    "num": 223,
    "nome": "Do Chasque",
    "x": 2213,
-   "y": 2667
+   "y": 2667,
+   "resp": "Renato Rosso"
   },
   {
    "num": 224,
    "nome": "Mouro Velho",
    "x": 2213,
-   "y": 2525
+   "y": 2525,
+   "resp": "Ricardo Siqueira Filho"
   },
   {
    "num": 225,
    "nome": "Amizade Gaudéria",
    "x": 2060,
-   "y": 2390
+   "y": 2390,
+   "resp": "Celso Barboza Echeli"
   },
   {
    "num": 226,
    "nome": "Chapeu Tapeado",
    "x": 2094,
-   "y": 2479
+   "y": 2479,
+   "resp": "Juarez Souza de Oliveira"
   },
   {
    "num": 227,
    "nome": "Pampa E Liberdade",
    "x": 2100,
-   "y": 2569
+   "y": 2569,
+   "resp": "João Odacir Garcia Bento"
   },
   {
    "num": 228,
    "nome": "Mangaço",
    "x": 2094,
-   "y": 2657
+   "y": 2657,
+   "resp": "Rafael Cristiano da Silva"
   },
   {
    "num": 229,
@@ -1393,37 +1571,43 @@ window.AF2026 = {
    "num": 231,
    "nome": "Harmonia Gaudéria",
    "x": 2010,
-   "y": 2481
+   "y": 2481,
+   "resp": "Maurício Gonçalves Jayme"
   },
   {
    "num": 232,
    "nome": "Galpão Do Gonha",
    "x": 2098,
-   "y": 2791
+   "y": 2791,
+   "resp": "Jorge Luis do Nascimento Viegas"
   },
   {
    "num": 233,
    "nome": "Galpão Da Amizade",
    "x": 2005,
-   "y": 2792
+   "y": 2792,
+   "resp": "Eoveri Antonio Belmonte Pena"
   },
   {
    "num": 234,
    "nome": "La Fronteira",
    "x": 1920,
-   "y": 2792
+   "y": 2792,
+   "resp": "Cristian Antônio Carvalho Rodrigues"
   },
   {
    "num": 235,
    "nome": "Cabo Toco",
    "x": 1827,
-   "y": 2789
+   "y": 2789,
+   "resp": "Luis Carlos de Jesus Costa"
   },
   {
    "num": 236,
    "nome": "Os Fronteiriços",
    "x": 430,
-   "y": 1531
+   "y": 1531,
+   "resp": "Valéria Nery dos Santos"
   }
  ],
  "roadNodes": {
