@@ -1756,10 +1756,12 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     // com partida fixa ligada, escolher um lugar ja vira rota: so o destino e escolhido.
     // Compara o OBJETO, nao o nome: o lote 139 tambem se chama "Chama Crioula" e, por
     // nome, era confundido com a origem — clicar nele nao tracava rota nenhuma.
-    // A partida automatica e a fixa (Chama Crioula) ou, sem ela, a posicao do GPS quando
-    // ja se sabe onde a pessoa esta. Nos dois casos escolher o destino ja traca a rota.
-    const origem = partidaFixaLigada() ? pontoPartidaFixa()
-                 : (gpsPoint && ligaGps() ? gpsPoint : null);
+    // Partida automatica: o GPS, se esta ligado e ja sabe onde a pessoa esta — ele e a
+    // verdade sobre onde ela esta. Senao a partida fixa (Chama Crioula). Nos dois casos
+    // escolher o destino ja traca a rota. A ordem importa: com os dois ligados, a rota
+    // saia da Chama Crioula com o ponto azul a 100 m dali.
+    const origem = (gpsPoint && ligaGps()) ? gpsPoint
+                 : (partidaFixaLigada() ? pontoPartidaFixa() : null);
     if(origem && p !== origem && !p.semLocal){
       {
         stops = [origem, p];
@@ -1967,8 +1969,8 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   ];
   // De onde é "aqui": a partida fixa, senão o GPS, senão o centro do que está na tela.
   function origemDoAtalho(){
+    if(gpsPoint) return gpsPoint;            // GPS primeiro: e onde a pessoa esta de fato
     if(partidaFixaLigada()){ const o = pontoPartidaFixa(); if(o) return o; }
-    if(gpsPoint) return gpsPoint;
     return { x: VB.x + VB.w/2, y: VB.y + VB.h/2, centroDaTela:true };
   }
   function maisPerto(filtro){
