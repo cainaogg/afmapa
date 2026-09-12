@@ -1533,13 +1533,14 @@ svg#map.modo-esquematico .esquematico{display:inline;}
       const dentro = Number.isFinite(x) && Number.isFinite(y) &&
         x >= VB0.x-800 && x <= VB0.x+VB0.w+800 && y >= VB0.y-800 && y <= VB0.y+VB0.h+800;
       setDiag(`${lat.toFixed(5)}, ${lng.toFixed(5)} (±${Math.round(acc)} m) → mapa ${Math.round(x)}, ${Math.round(y)}` +
-              (dentro ? ' — dentro do parque' : ' — FORA dos limites do mapa'));
+              (dentro ? ' — dentro do parque' : ' — FORA dos limites do mapa') +
+              (acc > GPS_PRECISAO_BOA ? ' — sinal fraco: ainda é a posição aproximada da rede, não do satélite. Debaixo de cobertura? Aguarde uns 30 s com céu aberto.' : ''));
       if(!dentro){
         gpsPoint = null; drawGpsDot();
         toast('Sua posição caiu fora dos limites do mapa. Veja o diagnóstico em ⚙️ Configurações.');
         return;
       }
-      gpsPoint = { kind:'gps', nome:'Minha localização', x, y, num:'' };
+      gpsPoint = { kind:'gps', nome:'Minha localização', x, y, num:'', acc };
       drawGpsDot();
       if(aoTerFix){ const f = aoTerFix; aoTerFix = null; f(); }
     }, (err)=>{
@@ -1548,10 +1549,18 @@ svg#map.modo-esquematico .esquematico{display:inline;}
       if(!silencioso) toast('Não foi possível obter sua localização: ' + (motivos[err.code] || err.message) + '.');
     }, { enableHighAccuracy:true, maximumAge:5000, timeout:20000 });
   }
+  // Um fix de satelite vem com ±5 a 15 m. Acima disso e a localizacao por rede/Wi-Fi que
+  // o aparelho entrega enquanto nao trava o GPS — no balcao, debaixo de cobertura, chegou
+  // ±104 m e o ponto caiu a 42 m do lugar certo. Rota a partir disso sai da rua errada com
+  // cara de certeza, entao um fix ruim so desenha o ponto; nao vira partida sozinho.
+  const GPS_PRECISAO_BOA = 30;   // metros
+  function gpsConfiavel(){ return gpsPoint && gpsPoint.acc <= GPS_PRECISAO_BOA; }
   function drawGpsDot(){
     layerGps.innerHTML='';
     if(!gpsPoint) return;
-    layerGps.appendChild(el('circle',{class:'gps-dot-outer', cx:gpsPoint.x, cy:gpsPoint.y, r:70}));
+    // o halo e a incerteza real, como no Google Maps: ±104 m vira um circulo de 104 m
+    const raio = Math.min(1200, Math.max(60, (gpsPoint.acc || 8) / M_POR_UNIDADE));
+    layerGps.appendChild(el('circle',{class:'gps-dot-outer', cx:gpsPoint.x, cy:gpsPoint.y, r:raio}));
     layerGps.appendChild(el('circle',{class:'gps-dot-inner', cx:gpsPoint.x, cy:gpsPoint.y, r:18}));
   }
   // Tira um no do grafo E das listas dos vizinhos. So zerar graph[id] deixava as arestas
@@ -1575,6 +1584,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   function useGpsForStopA(){
     startGps(()=>{
       if(!ligaGps()){ toast('Aguardando sinal de GPS…'); return; }
+      if(!gpsConfiavel()) toast(`Posição aproximada (±${Math.round(gpsPoint.acc)} m): o GPS ainda não travou. A rota pode sair da rua errada.`);
       stops[0] = gpsPoint;
       renderStops(); renderStopMarkers(); updateTraceBtn();
       flyTo(gpsPoint.x, gpsPoint.y, 900);
@@ -1771,7 +1781,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     // verdade sobre onde ela esta. Senao a partida fixa (Chama Crioula). Nos dois casos
     // escolher o destino ja traca a rota. A ordem importa: com os dois ligados, a rota
     // saia da Chama Crioula com o ponto azul a 100 m dali.
-    const origem = (gpsPoint && ligaGps()) ? gpsPoint
+    const origem = (gpsConfiavel() && ligaGps()) ? gpsPoint
                  : (partidaFixaLigada() ? pontoPartidaFixa() : null);
     if(origem && p !== origem && !p.semLocal){
       {
@@ -1980,7 +1990,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   ];
   // De onde é "aqui": a partida fixa, senão o GPS, senão o centro do que está na tela.
   function origemDoAtalho(){
-    if(gpsPoint) return gpsPoint;            // GPS primeiro: e onde a pessoa esta de fato
+    if(gpsConfiavel()) return gpsPoint;      // GPS primeiro, mas so com fix de satelite
     if(partidaFixaLigada()){ const o = pontoPartidaFixa(); if(o) return o; }
     return { x: VB.x + VB.w/2, y: VB.y + VB.h/2, centroDaTela:true };
   }
