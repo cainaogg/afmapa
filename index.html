@@ -265,7 +265,9 @@ svg#map.modo-esquematico .esquematico{display:inline;}
 .route-line.show{opacity:1;animation:dash 1s linear infinite;}
 @keyframes dash{to{stroke-dashoffset:-48;}}
 @media (prefers-reduced-motion: reduce){.route-line.show{animation:none;}}
-.gps-dot-outer{fill:rgba(26,115,232,.22);}
+/* halo = incerteza do fix. Quando e grande (fix de rede, ±100 m) ele cobre metade do
+   mapa, entao e quase transparente com um contorno fino: da pra ler o mapa atraves */
+.gps-dot-outer{fill:rgba(26,115,232,.08);stroke:rgba(26,115,232,.45);stroke-width:3;}
 .gps-dot-inner{fill:var(--gps);stroke:#fff;stroke-width:3;}
 </style>
 </head>
@@ -1559,7 +1561,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     layerGps.innerHTML='';
     if(!gpsPoint) return;
     // o halo e a incerteza real, como no Google Maps: ±104 m vira um circulo de 104 m
-    const raio = Math.min(1200, Math.max(60, (gpsPoint.acc || 8) / M_POR_UNIDADE));
+    const raio = Math.min(900, Math.max(60, (gpsPoint.acc || 8) / M_POR_UNIDADE));   // teto ~100 m
     layerGps.appendChild(el('circle',{class:'gps-dot-outer', cx:gpsPoint.x, cy:gpsPoint.y, r:raio}));
     layerGps.appendChild(el('circle',{class:'gps-dot-inner', cx:gpsPoint.x, cy:gpsPoint.y, r:18}));
   }
