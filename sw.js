@@ -2,12 +2,12 @@
 // visitante precisa (mapa, lotes, rotas) e todo estatico.
 //
 // BUMPAR O CACHE quando publicar: so trocar o numero abaixo.
-const CACHE = 'af2026-v12';
+const CACHE = 'af2026-v13';
 
 // O essencial pra desenhar o mapa. As duas imagens da base sao 2.2 MB juntas, mas
 // sem elas o mapa offline fica em branco.
 const ESSENCIAL = [
-  './', './index.html', './data.js?v=4', './programacao.js?v=1',
+  './', './index.html', './data.js?v=5', './programacao.js?v=1',
   './manifest.webmanifest', './pwa/icone-192.png',
   './mapa/parte0.webp?v=2', './mapa/parte1.webp?v=2',
 ];

@@ -408,7 +408,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/chama_crioula.png">
 <link rel="apple-touch-icon" href="icons/chama_crioula.png">
-<script src="data.js?v=4"></script>
+<script src="data.js?v=5"></script>
 <script src="programacao.js?v=1"></script>
 <script>
 (function(){
@@ -437,6 +437,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   const points = [];
   D.lots.forEach(l => points.push({
     kind:'lote', num:String(l.num), nome:l.nome, x:l.x, y:l.y, resp:l.resp,
+    alias:l.alias, tambemChamado:l.tambemChamado,   // apelidos so pra busca
   }));
   // tipo ("Loja", "Alimentação") so aparece na busca; no mapa fica so o nome curto
   D.landmarks.forEach(p => points.push({ kind:'poi', num:'', nome:p.nome, x:p.x, y:p.y, cat:p.cat,

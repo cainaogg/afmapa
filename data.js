@@ -20,7 +20,11 @@ window.AF2026 = {
    "nome": "Campo A Fora",
    "x": 3218,
    "y": 981,
-   "resp": "Cleiton Silvestre Munhos de Freitas"
+   "resp": "Cleiton Silvestre Munhos de Freitas",
+   "tambemChamado": [
+    "Rejane Guariglia",
+    "ACAMPARH"
+   ]
   },
   {
    "num": 2,
@@ -188,7 +192,10 @@ window.AF2026 = {
    "nome": "Galpão Querência Dos Machados",
    "x": 3257,
    "y": 1548,
-   "resp": "Milton dos Santos Machado"
+   "resp": "Milton dos Santos Machado",
+   "tambemChamado": [
+    "Tomas Pub"
+   ]
   },
   {
    "num": 27,
@@ -265,7 +272,11 @@ window.AF2026 = {
    "nome": "Chama Nativa - Funcionários GHC",
    "x": 3474,
    "y": 1332,
-   "resp": "Vitor Hugo Recova"
+   "resp": "Vitor Hugo Recova",
+   "tambemChamado": [
+    "Grupo Hospitalar Conceição",
+    "GHC"
+   ]
   },
   {
    "num": 38,
@@ -1169,7 +1180,10 @@ window.AF2026 = {
    "nome": "Herança Pampeana",
    "x": 3280,
    "y": 2064,
-   "resp": "Lucas Saldanha"
+   "resp": "Lucas Saldanha",
+   "tambemChamado": [
+    "Patrimônio"
+   ]
   },
   {
    "num": 172,
@@ -3645,7 +3659,12 @@ window.AF2026 = {
    "y": 1581,
    "cat": "media",
    "icon": "rede_pampa",
-   "iconSize": 90
+   "iconSize": 90,
+   "tambemChamado": [
+    "MRV",
+    "Piquete Pampa"
+   ],
+   "alias": "mrv acao de marketing"
   },
   {
    "nome": "Frutos de Goiás",
@@ -3925,13 +3944,16 @@ window.AF2026 = {
    "alias": "banheiro wc toalete privada chuveiro ducha"
   },
   {
-   "nome": "Brigada Militar 2",
+   "nome": "Piquete Brigada Militar",
    "x": 3557,
    "y": 1206,
    "cat": "service",
    "icon": "brigada_militar",
    "iconSize": 108,
-   "alias": "policia seguranca brigada"
+   "alias": "policia seguranca brigada ao lado dos lotes 35 36 41",
+   "tambemChamado": [
+    "Brigada Militar 2"
+   ]
   },
   {
    "nome": "Táxi e App — Norte",
