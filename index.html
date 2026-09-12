@@ -331,7 +331,6 @@ svg#map.modo-esquematico .esquematico{display:inline;}
       <button class="menu-item" id="btnProg"><span class="mi">📅</span><span>Programação</span></button>
       <button class="menu-item" id="btnQr"><span class="mi">🔳</span><span>QR code do site</span></button>
       <button class="menu-item" id="btnConfig"><span class="mi">⚙️</span><span>Configurações</span></button>
-      <button class="menu-item" id="btnBase"><span class="mi">🗺️</span><span id="btnBaseTxt">Mapa esquemático</span></button>
     </div>
   </div>
 
@@ -1557,7 +1556,8 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   });
 
   // ============ mapa oficial x esquemático ============
-  const btnBase = document.getElementById('btnBase');
+  // O esquemático é ferramenta nossa de conferência, não interessa ao visitante: saiu do
+  // menu. Pra nós, abre com ?esq no endereço — só naquela abertura, nada fica gravado.
   let iconesCarregados = false;
   function carregarIconesEsquematicos(){
     if(iconesCarregados) return;
@@ -1572,15 +1572,8 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   function aplicaBase(esquematico){
     if(esquematico) carregarIconesEsquematicos();
     svg.classList.toggle('modo-esquematico', esquematico);
-    document.getElementById('btnBaseTxt').textContent = esquematico ? 'Mapa oficial' : 'Mapa esquemático';
-    btnBase.title = esquematico ? 'Ver o mapa oficial' : 'Ver o mapa esquemático';
-    try{ localStorage.setItem('af2026_base', esquematico?'esq':'oficial'); }catch(e){}
   }
-  aplicaBase((()=>{ try{ return localStorage.getItem('af2026_base')==='esq'; }catch(e){ return false; } })());
-  btnBase.addEventListener('click', ()=>{
-    aplicaBase(!svg.classList.contains('modo-esquematico'));
-    menuOverlay.style.display = 'none';
-  });
+  aplicaBase(new URLSearchParams(location.search).has('esq'));
 
   // ============ tema claro/escuro (manual, além do automático por sistema) ============
   const cfgEscuro = document.getElementById('cfgEscuro');
