@@ -39,7 +39,11 @@
 html,body{height:100%;}
 body{margin:0;background:var(--ground);color:var(--ink);font-family:'Roboto',Arial,sans-serif;overscroll-behavior:none;}
 .app{position:relative;height:100vh;height:100dvh;overflow:hidden;}
-svg#map{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;}
+svg#map{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;
+  user-select:none;-webkit-user-select:none;}
+/* nada dentro do mapa e selecionavel nem arrastavel: o 'A' do pino selecionado virava um
+   arrasto nativo de texto e o navegador cancelava o pan */
+svg#map *{user-select:none;-webkit-user-select:none;-webkit-user-drag:none;}
 /* a arte oficial do PDF e o que o visitante ve; a camada desenhada por nos fica de reserva */
 svg#map .esquematico{display:none;}
 svg#map.modo-esquematico .base-oficial{display:none;}
@@ -879,7 +883,10 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     const rect = svg.getBoundingClientRect();
     return { x: VB.x + (cx-rect.left)/rect.width*VB.w, y: VB.y + (cy-rect.top)/rect.height*VB.h };
   }
-  svg.addEventListener('pointerdown',(e)=>{ isPanning=true; panStart={x:e.clientX,y:e.clientY}; vbStart={...VB}; svg.setPointerCapture(e.pointerId); });
+  svg.addEventListener('pointerdown',(e)=>{
+    e.preventDefault();   // impede selecao de texto e arrasto nativo de comecarem
+    isPanning=true; panStart={x:e.clientX,y:e.clientY}; vbStart={...VB}; svg.setPointerCapture(e.pointerId);
+  });
   svg.addEventListener('pointermove',(e)=>{
     if(!isPanning) return;
     const rect = svg.getBoundingClientRect();
