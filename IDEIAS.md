@@ -216,9 +216,12 @@ dificuldade de se orientar por mapa.
 
 - **20 marcos ainda sem ícone** — a maioria é área retangular (palcos, feiras,
   Churrascaria Cultura Gaúcha), onde o ícone talvez nem faça sentido.
-- **Testar o GPS no parque.** Nunca foi validado em campo. O site agora está em
-  HTTPS (requisito do navegador) e tem um diagnóstico dentro de Configurações
-  que mostra latitude, longitude, precisão e para onde isso caiu no mapa.
+- **GPS testado no parque em 12/09.** O ponto azul caiu no lugar certo (ao lado
+  da Estância Harmonia, colado na Chama Crioula). Mas rota a partir do GPS,
+  atalhos a partir do GPS e o segundo toque no 📍 estavam quebrados — três
+  bugs do mesmo lugar: `startGps` descartava o callback quando o rastreio já
+  estava rodando, e o ponto GPS nunca era ligado na malha de ruas fora desse
+  callback. Corrigidos e testados com GPS simulado na posição real.
 - **`/AFmapa` com maiúsculas.** O Pages diferencia maiúsculas; o repositório
   ficou `afmapa`. Se quiser as maiúsculas, renomeie para exatamente `AFmapa` e
   regere o QR com `python3 gerar_qr.py <nova-url>`.

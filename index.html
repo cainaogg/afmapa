@@ -1496,7 +1496,12 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     const el2 = document.getElementById('gpsDiag');
     if(el2) el2.textContent = txt;
   }
-  function startGps(onFirstFix){
+  // Callback pendente de quem pediu a posicao antes do primeiro fix. Antes o callback era
+  // parametro e se perdia quando o rastreio JA estava rodando (startGps saia no
+  // 'if(gpsWatchId!=null) return' antes de registrar): "usar minha localizacao como
+  // partida" nao fazia nada se a pessoa tivesse apertado o 📍 antes.
+  let aoTerFix = null;
+  function startGps(cb){
     if(!navigator.geolocation){
       setDiag('este navegador não tem geolocalização');
       toast('Geolocalização não disponível neste navegador.'); return;
@@ -1507,6 +1512,8 @@ svg#map.modo-esquematico .esquematico{display:inline;}
       toast('O navegador só libera GPS em HTTPS. Abra o site pelo endereço https, não pelo arquivo.');
       return;
     }
+    if(gpsPoint){ if(cb) cb(); return; }     // ja sabemos onde esta: usa agora
+    if(cb) aoTerFix = cb;                     // senao espera o primeiro fix
     if(gpsWatchId!=null) return;
     setDiag('procurando sinal…');
     gpsWatchId = navigator.geolocation.watchPosition((pos)=>{
@@ -1523,7 +1530,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
       }
       gpsPoint = { kind:'gps', nome:'Minha localização', x, y, num:'' };
       drawGpsDot();
-      if(onFirstFix){ onFirstFix(); onFirstFix=null; }
+      if(aoTerFix){ const f = aoTerFix; aoTerFix = null; f(); }
     }, (err)=>{
       const motivos = {1:'permissão negada', 2:'posição indisponível (sem sinal)', 3:'tempo esgotado'};
       setDiag('erro: ' + (motivos[err.code] || err.message));
@@ -1536,13 +1543,27 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     layerGps.appendChild(el('circle',{class:'gps-dot-outer', cx:gpsPoint.x, cy:gpsPoint.y, r:70}));
     layerGps.appendChild(el('circle',{class:'gps-dot-inner', cx:gpsPoint.x, cy:gpsPoint.y, r:18}));
   }
+  // Tira um no do grafo E das listas dos vizinhos. So zerar graph[id] deixava as arestas
+  // de volta (vizinho -> id) com o peso antigo: religar o GPS em outro lugar criava um
+  // atalho fantasma pelo no velho.
+  function desligaNo(id){
+    (graph[id] || []).forEach(e=>{ if(graph[e.to]) graph[e.to] = graph[e.to].filter(x=> x.to !== id); });
+    delete graph[id]; delete viaPos[id]; delete viaAresta[id];
+  }
+  // Liga a posicao do aparelho na malha de ruas. Idempotente: pode chamar a cada uso,
+  // porque a posicao muda. viaPos guarda a coordenada pra nodePos() achar o no.
+  function ligaGps(){
+    if(!gpsPoint) return false;
+    desligaNo('GPS_NODE'); desligaNo('VIA_GPS');
+    addNode('GPS_NODE');
+    viaPos['GPS_NODE'] = [gpsPoint.x, gpsPoint.y];
+    ligaNaRua('GPS_NODE', gpsPoint.x, gpsPoint.y, 'VIA_GPS', null);
+    gpsPoint._nodeId = 'GPS_NODE';
+    return true;
+  }
   function useGpsForStopA(){
     startGps(()=>{
-      if(!gpsPoint){ toast('Aguardando sinal de GPS…'); return; }
-      // liga o ponto GPS na malha viária
-      addNode(gpsPoint._nodeId = 'GPS_NODE');
-      graph['GPS_NODE'] = [];
-      ligaNaRua('GPS_NODE', gpsPoint.x, gpsPoint.y, 'VIA_GPS', null);
+      if(!ligaGps()){ toast('Aguardando sinal de GPS…'); return; }
       stops[0] = gpsPoint;
       renderStops(); renderStopMarkers(); updateTraceBtn();
       flyTo(gpsPoint.x, gpsPoint.y, 900);
@@ -1551,8 +1572,8 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   }
   document.getElementById('btnGps').addEventListener('click', ()=>{ showTab('route'); useGpsForStopA(); });
   document.getElementById('btnGpsFab').addEventListener('click', ()=>{
+    if(!gpsPoint) toast('Localizando…');      // com posicao conhecida, so voa ate ela
     startGps(()=>{ if(gpsPoint) flyTo(gpsPoint.x, gpsPoint.y, 900); });
-    toast('Localizando… (aproximado — beta)');
   });
 
   // ============ mapa oficial x esquemático ============
@@ -1952,9 +1973,12 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     if(!alvos.length) return null;
     const origem = origemDoAtalho();
     let deId = origem._nodeId;
+    if(origem === gpsPoint){ ligaGps(); deId = 'GPS_NODE'; }   // sem isso o GPS nao tinha no
     if(origem.centroDaTela){
       deId = 'AQUI_NODE';
-      addNode(deId); graph[deId] = [];
+      desligaNo('AQUI_NODE'); desligaNo('VIA_AQUI');
+      addNode(deId);
+      viaPos[deId] = [origem.x, origem.y];
       ligaNaRua(deId, origem.x, origem.y, 'VIA_AQUI', null);
     }
     const distMap = distanciasDe(deId);
