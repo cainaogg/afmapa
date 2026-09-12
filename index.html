@@ -230,6 +230,15 @@ svg#map.modo-esquematico .esquematico{display:inline;}
 .prog-dia b{display:block;font-size:13px;}
 .prog-dia.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);}
 .prog-lista{padding:6px 12px 14px;overflow:auto;}
+/* no desktop tem tela de sobra: a programacao abre larga e os 19 dias aparecem de uma
+   vez, em linhas, em vez de uma tira de 4 que precisa rolar */
+@media (min-width: 721px){
+  #progOverlay{width:620px;display:flex;flex-direction:column;}
+  #progOverlay .prog-dias{flex-wrap:wrap;overflow:visible;}
+  #progOverlay .prog-lista{font-size:14px;}
+  #progOverlay .prog-item{font-size:14px;padding:9px 0;}
+  #progOverlay .prog-item .h{width:110px;font-size:12.5px;}
+}
 .prog-palco{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-soft);
   font-weight:700;margin:12px 0 4px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
 .prog-ir{border:none;background:none;color:var(--accent);font-weight:700;font-size:11.5px;cursor:pointer;
