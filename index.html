@@ -1756,8 +1756,11 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     // com partida fixa ligada, escolher um lugar ja vira rota: so o destino e escolhido.
     // Compara o OBJETO, nao o nome: o lote 139 tambem se chama "Chama Crioula" e, por
     // nome, era confundido com a origem — clicar nele nao tracava rota nenhuma.
-    const origem = pontoPartidaFixa();
-    if(partidaFixaLigada() && p !== origem && !p.semLocal){
+    // A partida automatica e a fixa (Chama Crioula) ou, sem ela, a posicao do GPS quando
+    // ja se sabe onde a pessoa esta. Nos dois casos escolher o destino ja traca a rota.
+    const origem = partidaFixaLigada() ? pontoPartidaFixa()
+                 : (gpsPoint && ligaGps() ? gpsPoint : null);
+    if(origem && p !== origem && !p.semLocal){
       {
         stops = [origem, p];
         searchResults.innerHTML = '';
