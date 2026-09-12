@@ -1435,12 +1435,14 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     if(off){ pararGps(); gpsPoint=null; drawGpsDot(); }
     try{ localStorage.setItem('af2026_sem_gps', off?'1':'0'); }catch(e){}
   }
-  // padrao: GPS desativado. So liga se a pessoa desmarcar de proposito ('0').
-  try{ cfgSemGps.checked = localStorage.getItem('af2026_sem_gps') !== '0'; }
-  catch(e){ cfgSemGps.checked = true; }
+  // Padrao: GPS ligado (validado em campo em 12/09). So fica desligado se a pessoa marcar
+  // 'Desativar GPS' — e isso fica gravado no aparelho ('1').
+  try{ cfgSemGps.checked = localStorage.getItem('af2026_sem_gps') === '1'; }
+  catch(e){ cfgSemGps.checked = false; }
   cfgSemGps.addEventListener('change', ()=>{
     aplicaGps();
     toast(cfgSemGps.checked ? 'GPS desativado.' : 'GPS reativado.');
+    if(!cfgSemGps.checked) startGps(null, true);
   });
   aplicaGps();
 
@@ -1501,7 +1503,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   // 'if(gpsWatchId!=null) return' antes de registrar): "usar minha localizacao como
   // partida" nao fazia nada se a pessoa tivesse apertado o 📍 antes.
   let aoTerFix = null;
-  function startGps(cb){
+  function startGps(cb, silencioso){
     if(!navigator.geolocation){
       setDiag('este navegador não tem geolocalização');
       toast('Geolocalização não disponível neste navegador.'); return;
@@ -1534,7 +1536,7 @@ svg#map.modo-esquematico .esquematico{display:inline;}
     }, (err)=>{
       const motivos = {1:'permissão negada', 2:'posição indisponível (sem sinal)', 3:'tempo esgotado'};
       setDiag('erro: ' + (motivos[err.code] || err.message));
-      toast('Não foi possível obter sua localização: ' + (motivos[err.code] || err.message) + '.');
+      if(!silencioso) toast('Não foi possível obter sua localização: ' + (motivos[err.code] || err.message) + '.');
     }, { enableHighAccuracy:true, maximumAge:5000, timeout:20000 });
   }
   function drawGpsDot(){
@@ -2035,6 +2037,10 @@ svg#map.modo-esquematico .esquematico{display:inline;}
   // primeira renderização
   if(cfgPartidaFixa.checked) aplicaPartidaFixa();
   renderStopMarkers();
+  // Com o GPS permitido, ja comeca a procurar a posicao: assim o primeiro toque num
+  // resultado ja traca a rota de onde a pessoa esta. Silencioso: se ela negar a
+  // permissao, nao fica um aviso a cada abertura — o diagnostico em ⚙️ registra.
+  if(!cfgSemGps.checked) startGps(null, true);
 })();
 </script>
 </body>
